@@ -1,0 +1,73 @@
+<html>
+  <head> 
+    <meta charset="utf-8" /> 
+    <title>My first jQuery Mobile code</title> 
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.css" />
+    <script src="http://code.jquery.com/jquery-1.8.2.min.js"></script> 
+    <script src="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.js"></script>
+    <meta name="viewport" content="minimum-scale=1.0, width=device-width, maximum-scale=1.0, user-scalable=no"  />
+    <script type="text/javascript">
+    	var lastupdate = 0;
+	    function poll(){
+	    	$( ".foo" ).append( "<p>Polling...</p>" );
+	    	$.ajax({ 
+	        	url: "update", 
+	        	success: function(data){
+	        		$( ".foo" ).append( "<p>" + JSON.stringify(data) + "</p>" );
+	        		lastupdate = response.timestamp;
+	        		setTimeout('poll', 1000);
+	        	}, 
+	        	error: function(data){
+	        		$( ".foo" ).append( "<p>Error</p>" );
+	        		setTimeout('poll', 10000);	
+	        	},
+	        	dataType: "json", 
+	        	timeout: 30000 });
+	    }	
+	    $(document).live('pageinit', poll)
+    </script>
+  </head> 
+  <body>
+  	
+    <div data-role="page">
+      <div data-role="header"> 
+        Garage Controller
+      </div> 
+      <div data-role="content">      
+	<div class="content-primary">
+		<div class="foo">data goes here</div>
+	 <!--  <ul data-role="listview">
+	    <li data-icon="false">
+	      <a href="" >
+		<img src="img/open.png"/>
+		<h3>Left Door</h3>
+		<p>Opened 20 minutes ago</p>
+	      </a>
+	    </li>
+	    <li data-icon="false">
+	      <a href="">
+		<img src="img/closed.png"/>
+		<h3>Left Door</h3>
+		<p>Opened 20 minutes ago</p>
+	      </a>
+	    </li>
+	    <li data-icon="false">
+	      <a href="">
+		<img src="img/opening.png"/>
+		<h3>Left Door</h3>
+		<p>Opened 20 minutes ago</p>
+	      </a>
+	    </li>
+	    <li data-icon="false">
+	      <a href="">
+		<img src="img/closed.png"/>
+		<h3>Left Door</h3>
+		<p>Opened 20 minutes ago</p>
+	      </a>
+	    </li>
+	  </ul> -->
+	</div>
+      </div>   
+    </div> 
+  </body> 
+</html>
