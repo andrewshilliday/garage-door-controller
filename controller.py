@@ -5,6 +5,8 @@ from twisted.internet import task
 from twisted.internet import reactor
 from twisted.protocols.basic import LineReceiver
 from twisted.internet.protocol import Factory
+from twisted.web import server, resource, http, static
+import webserver
 
 class Door(object):
     last_action = None
@@ -80,6 +82,7 @@ class Controller():
     def run(self):
         lc = task.LoopingCall(self.status_check).start(0.5)
         reactor.listenTCP(8123, ServerFactory(self))
+        reactor.listenTCP(80, server.Site(webserver.MainApp(self)))
         reactor.run()
 
 class ServerProtocol(LineReceiver):
