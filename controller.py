@@ -185,7 +185,7 @@ class UpdateHandler(Resource):
         
         # tell the client we're not done yet
         return server.NOT_DONE_YET
-       
+     
 if __name__ == '__main__':
     config = {'doors': 
               {'left' : 

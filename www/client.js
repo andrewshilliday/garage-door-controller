@@ -1,8 +1,9 @@
 var lastupdate = 0;
 
 function formatState(state, time)
-{    		
-    return state.charAt(0).toUpperCase() + state.slice(1);
+{   
+	dateStr = dateFormat(new Date(parseInt(time)*1000), "mmm dS, yyyy, h:MM TT");
+    return state.charAt(0).toUpperCase() + state.slice(1) + " as of " + dateStr;
 };
 
 function click(name) 
