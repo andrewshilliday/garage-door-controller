@@ -3,12 +3,8 @@ import time
 
 from twisted.internet import task
 from twisted.internet import reactor
-# from twisted.protocols.basic import LineReceiver
-# from twisted.internet.protocol import Factory
-from twisted.web import server, resource, http, static
-# import webserver
+from twisted.web import server
 from twisted.web.static import File
-from twisted.python import log
 from twisted.web.resource import Resource
 import json
 
@@ -17,8 +13,8 @@ class Door(object):
     last_action_time = None
     
 
-    def __init__(self, id, config):
-        self.id = id
+    def __init__(self, doorId, config):
+        self.id = doorId
         self.name = config['name']
         self.relay_pin = config['relay_pin']
         self.state_pin = config['state_pin']
@@ -81,9 +77,9 @@ class Controller():
                 door.last_state_time = time.time()
                 self.updateHandler.handle_updates()
 
-    def toggle(self, id):
+    def toggle(self, doorId):
         for d in self.doors:
-            if d.id == id:
+            if d.id == doorId:
                 d.toggle_relay()
                 return
         
