@@ -1,16 +1,21 @@
 import time
-import RPi.GPIO as gpio
+# import RPi.GPIO as gpio
 
 from twisted.internet import task
 from twisted.internet import reactor
-from twisted.protocols.basic import LineReceiver
-from twisted.internet.protocol import Factory
+# from twisted.protocols.basic import LineReceiver
+# from twisted.internet.protocol import Factory
 from twisted.web import server, resource, http, static
-import webserver
+# import webserver
+from twisted.web.static import File
+from twisted.python import log
+from twisted.web.resource import Resource
+import json
 
 class Door(object):
     last_action = None
     last_action_time = None
+    
 
     def __init__(self, name, config):
         self.name = name
@@ -18,12 +23,12 @@ class Door(object):
         self.state_pin = config['state_pin']
         self.time_to_close = config.get('time_to_close', 10)
         self.time_to_open = config.get('time_to_open', 10)
-        gpio.setup(self.relay_pin, gpio.OUT)
-        gpio.setup(self.state_pin, gpio.IN, pull_up_down=gpio.PUD_UP)        
-        gpio.output(self.relay_pin, True)
+#         gpio.setup(self.relay_pin, gpio.OUT)
+#         gpio.setup(self.state_pin, gpio.IN, pull_up_down=gpio.PUD_UP)        
+#         gpio.output(self.relay_pin, True)
         
     def get_state(self):
-        if gpio.input(self.state_pin) == 0:
+        if False: # gpio.input(self.state_pin) == 0:
             return 'closed'
         elif self.last_action == 'open':
             if time.time() - self.last_action_time >= self.time_to_open:
@@ -50,62 +55,103 @@ class Door(object):
             self.last_action = None
             self.last_action_time = None
         
-        gpio.output(self.relay_pin, False)
+#         gpio.output(self.relay_pin, False)
         time.sleep(0.2)
-        gpio.output(self.relay_pin, True)
+#         gpio.output(self.relay_pin, True)
 
 class Controller():
     def __init__(self, config):
-        gpio.setwarnings(False)
-        gpio.cleanup()
-        gpio.setmode(gpio.BCM)
-        self.servers = set()
+#         gpio.setwarnings(False)
+#         gpio.cleanup()
+#         gpio.setmode(gpio.BCM)
         self.config = config
         self.doors = [Door(n,c) for (n,c) in config.items()]
-        self.last_states = ['unknown' for d in self.doors]
-    
+        self.updateHandler = UpdateHandler(self)
+        for door in self.doors:
+            door.last_state = 'unknown'
+            door.last_state_time = time.time()
+            
     def status_check(self):
-        new_states = [d.get_state() for d in self.doors]
-        for (d,os,ns) in zip(self.doors, self.last_states, new_states):
-            if os != ns:
-                print '%s: %s => %s' % (d.name,os,ns)
-                for s in self.servers:
-                    s.sendLine('%s: %s => %s' % (d.name,os,ns))
-        self.last_states = new_states
+        for door in self.doors:
+            new_state = door.get_state()
+            if (door.last_state != new_state):
+                print '%s: %s => %s' % (door.name, door.last_state, new_state)
+                door.last_state = new_state
+                door.last_state_time = time.time()
+                self.updateHandler.handle_updates()
 
     def toggle(self, name):
         for d in self.doors:
             if d.name == name:
                 d.toggle_relay()
                 return
+        
+    def get_updates(self, lastupdate):
+        return [(d.name, d.last_state) 
+                for d in self.doors 
+                if d.last_state_time >= lastupdate]
 
     def run(self):
-        lc = task.LoopingCall(self.status_check).start(0.5)
-        reactor.listenTCP(8123, ServerFactory(self))
-        reactor.listenTCP(80, server.Site(webserver.MainApp(self)))
-        reactor.run()
+        task.LoopingCall(self.status_check).start(0.5)
+        root = File('www')
+        root.putChild('update', self.updateHandler)
+        site = server.Site(root)
+                
+        reactor.listenTCP(8080, site)  # @UndefinedVariable
+        reactor.run()  # @UndefinedVariable
 
-class ServerProtocol(LineReceiver):
-    def __init__ (self, controller):
+class UpdateHandler(Resource):
+    isLeaf = True
+    def __init__(self, controller):
+        Resource.__init__(self)
+        self.delayed_requests = []
         self.controller = controller
-
-    def connectionMade(self):
-        self.controller.servers.add(self)
-
-    def connectionLost(self, reason):
-        self.controller.servers.remove(self)
-
-    def lineReceived(self, line):
-        self.controller.toggle(line)
-
-class ServerFactory(Factory):
-    def __init__ (self, controller):
-        self.controller = controller
-
-    def buildProtocol(self, addr):
-        return ServerProtocol(controller)    
-        
     
+    def handle_updates(self):
+        for request in self.delayed_requests:
+            updates = self.controller.get_updates(request.lastupdate)
+            if updates != []:
+                self.send_updates(request, updates)
+                self.delayed_requests.remove(request);
+    
+    def format_updates(self, request, update):
+        response = json.dumps({'timestamp': int(time.time()), 'update':update})
+        if hasattr(request, 'jsonpcallback'):
+            return request.jsonpcallback +'('+response+')'
+        else:
+            return response
+            
+    def send_updates(self, request, updates):
+        request.write(self.format_updates(request, updates))
+        request.finish()
+    
+    def render(self, request):
+        # set the request content type
+        request.setHeader('Content-Type', 'application/json')
+        
+        # set args
+        args = request.args
+       
+        # set jsonp callback handler name if it exists
+        if 'callback' in args:
+            request.jsonpcallback =  args['callback'][0]
+           
+        # set lastupdate if it exists
+        if 'lastupdate' in args:
+            request.lastupdate =  args['lastupdate'][0]
+        else:
+            request.lastupdate = 0
+            
+        # Can we accommodate this request now?
+        updates = controller.get_updates(request.lastupdate)
+        if updates != []:
+            return self.format_updates(request, updates)
+             
+        self.requests.append(request)
+        
+        # tell the client we're not done yet
+        return server.NOT_DONE_YET
+       
 if __name__ == '__main__':
     config = {'Left Door' : 
               {'relay_pin': 17,
