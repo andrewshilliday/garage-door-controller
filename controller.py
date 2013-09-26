@@ -17,8 +17,9 @@ class Door(object):
     last_action_time = None
     
 
-    def __init__(self, name, config):
-        self.name = name
+    def __init__(self, id, config):
+        self.id = id
+        self.name = config['name']
         self.relay_pin = config['relay_pin']
         self.state_pin = config['state_pin']
         self.time_to_close = config.get('time_to_close', 10)
@@ -65,7 +66,7 @@ class Controller():
 #         gpio.cleanup()
 #         gpio.setmode(gpio.BCM)
         self.config = config
-        self.doors = [Door(n,c) for (n,c) in config.items()]
+        self.doors = [Door(n,c) for (n,c) in config['doors'].items()]
         self.updateHandler = UpdateHandler(self)
         for door in self.doors:
             door.last_state = 'unknown'
@@ -80,25 +81,57 @@ class Controller():
                 door.last_state_time = time.time()
                 self.updateHandler.handle_updates()
 
-    def toggle(self, name):
+    def toggle(self, id):
         for d in self.doors:
-            if d.name == name:
+            if d.id == id:
                 d.toggle_relay()
                 return
         
     def get_updates(self, lastupdate):
-        return [(d.name, d.last_state) 
-                for d in self.doors 
-                if d.last_state_time >= lastupdate]
+        updates = []
+        for d in self.doors:
+            if d.last_state_time >= lastupdate:
+                updates.append((d.id, d.last_state, d.last_state_time))
+        return updates
+#         return [(d.name, d.last_state, d.last_state_time) 
+#                 for d in self.doors 
+#                 if d.last_state_time <= lastupdate]
 
     def run(self):
         task.LoopingCall(self.status_check).start(0.5)
         root = File('www')
-        root.putChild('update', self.updateHandler)
+        root.putChild('upd', self.updateHandler)
+        root.putChild('cfg', ConfigHandler(self))
+        root.putChild('clk', ClickHandler(self))
         site = server.Site(root)
                 
         reactor.listenTCP(8080, site)  # @UndefinedVariable
         reactor.run()  # @UndefinedVariable
+
+class ClickHandler(Resource):
+    isLeaf = True
+    
+    def __init__ (self, controller):
+        Resource.__init__(self)
+        self.controller = controller
+    
+    def render(self, request):
+        door = request.args['id'][0]
+        self.controller.toggle(door)
+        return 'OK'
+
+class ConfigHandler(Resource):
+    isLeaf = True
+    def __init__ (self, controller):
+        Resource.__init__(self)
+        self.controller = controller
+    
+    def render(self, request):
+        request.setHeader('Content-Type', 'application/json')
+        
+        return json.dumps([(d.id, d.name, d.last_state, d.last_state_time)
+                            for d in controller.doors])         
+        
 
 class UpdateHandler(Resource):
     isLeaf = True
@@ -126,6 +159,7 @@ class UpdateHandler(Resource):
         request.finish()
     
     def render(self, request):
+        
         # set the request content type
         request.setHeader('Content-Type', 'application/json')
         
@@ -138,26 +172,32 @@ class UpdateHandler(Resource):
            
         # set lastupdate if it exists
         if 'lastupdate' in args:
-            request.lastupdate =  args['lastupdate'][0]
+            request.lastupdate = float(args['lastupdate'][0])
         else:
             request.lastupdate = 0
+            
+        print "request received " + str(request.lastupdate)    
             
         # Can we accommodate this request now?
         updates = controller.get_updates(request.lastupdate)
         if updates != []:
             return self.format_updates(request, updates)
-             
-        self.requests.append(request)
+        
+        
+        request.notifyFinish().addErrback(lambda x: self.delayed_requests.remove(request))
+        self.delayed_requests.append(request)
         
         # tell the client we're not done yet
         return server.NOT_DONE_YET
        
 if __name__ == '__main__':
-    config = {'Left Door' : 
-              {'relay_pin': 17,
-               'state_pin': 23,
-               'approx_time_to_close' : 10,
-               'approx_time_to_open': 10}}
+    config = {'doors': 
+              {'left' : 
+               {'name':'Left Door',
+                'relay_pin': 17,
+                'state_pin': 23,
+                'approx_time_to_close' : 10,
+                'approx_time_to_open': 10}}}
 
     controller = Controller(config)
     controller.run()
