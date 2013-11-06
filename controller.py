@@ -1,5 +1,5 @@
 import time
-# import RPi.GPIO as gpio
+import RPi.GPIO as gpio
 
 from twisted.internet import task
 from twisted.internet import reactor
@@ -11,7 +11,9 @@ import json
 class Door(object):
     last_action = None
     last_action_time = None
-    
+
+    time_open = None
+    msg_sent = False
 
     def __init__(self, doorId, config):
         self.id = doorId
@@ -20,12 +22,12 @@ class Door(object):
         self.state_pin = config['state_pin']
         self.time_to_close = config.get('time_to_close', 10)
         self.time_to_open = config.get('time_to_open', 10)
-#         gpio.setup(self.relay_pin, gpio.OUT)
-#         gpio.setup(self.state_pin, gpio.IN, pull_up_down=gpio.PUD_UP)        
-#         gpio.output(self.relay_pin, True)
+        gpio.setup(self.relay_pin, gpio.OUT)
+        gpio.setup(self.state_pin, gpio.IN, pull_up_down=gpio.PUD_UP)        
+        gpio.output(self.relay_pin, True)
         
     def get_state(self):
-        if False: # gpio.input(self.state_pin) == 0:
+        if gpio.input(self.state_pin) == 0:
             return 'closed'
         elif self.last_action == 'open':
             if time.time() - self.last_action_time >= self.time_to_open:
@@ -39,7 +41,7 @@ class Door(object):
                 return 'closing'
         else:
             return 'open'
-
+        
     def toggle_relay(self):
         state = self.get_state()
         if (state == 'open'):
@@ -52,15 +54,17 @@ class Door(object):
             self.last_action = None
             self.last_action_time = None
         
-#         gpio.output(self.relay_pin, False)
+        gpio.output(self.relay_pin, False)
         time.sleep(0.2)
-#         gpio.output(self.relay_pin, True)
+        gpio.output(self.relay_pin, True)
 
 class Controller():
     def __init__(self, config):
-#         gpio.setwarnings(False)
-#         gpio.cleanup()
-#         gpio.setmode(gpio.BCM)
+        gpio.setwarnings(False)
+        gpio.cleanup()
+        gpio.setmode(gpio.BCM)
+        self.open_time = time.time()
+        self.msg_sent = False
         self.config = config
         self.doors = [Door(n,c) for (n,c) in config['doors'].items()]
         self.updateHandler = UpdateHandler(self)
@@ -69,6 +73,8 @@ class Controller():
             door.last_state_time = time.time()
             
     def status_check(self):
+        open_doors = False
+
         for door in self.doors:
             new_state = door.get_state()
             if (door.last_state != new_state):
@@ -76,6 +82,20 @@ class Controller():
                 door.last_state = new_state
                 door.last_state_time = time.time()
                 self.updateHandler.handle_updates()
+            if not new_state == 'closed':
+                open_doors = True
+
+        if open_doors and not self.msg_sent and time.time() - self.open_time >= 10:
+            self.send_opendoor_message()
+        
+        if not open_doors:
+            self.open_time = time.time()
+            self.msg_sent = False
+                
+    def send_opendoor_message(self):
+        print 'Sending a message'
+        self.msg_sent = True    
+        
 
     def toggle(self, doorId):
         for d in self.doors:
@@ -172,7 +192,7 @@ class UpdateHandler(Resource):
         else:
             request.lastupdate = 0
             
-        print "request received " + str(request.lastupdate)    
+            #print "request received " + str(request.lastupdate)    
             
         # Can we accommodate this request now?
         updates = controller.get_updates(request.lastupdate)
@@ -189,9 +209,15 @@ class UpdateHandler(Resource):
 if __name__ == '__main__':
     config = {'doors': 
               {'left' : 
-               {'name':'Left Door',
-                'relay_pin': 17,
-                'state_pin': 23,
+               {'name':'Andy',
+                'relay_pin': 23,
+                'state_pin': 17,
+                'approx_time_to_close' : 10,
+                'approx_time_to_open': 10},
+               'right' : 
+               {'name':'Nic',
+                'relay_pin': 24,
+                'state_pin': 27,
                 'approx_time_to_close' : 10,
                 'approx_time_to_open': 10}}}
 
