@@ -1,3 +1,4 @@
+import syslog
 import time
 import RPi.GPIO as gpio
 
@@ -78,7 +79,7 @@ class Controller():
         for door in self.doors:
             new_state = door.get_state()
             if (door.last_state != new_state):
-                print '%s: %s => %s' % (door.name, door.last_state, new_state)
+                syslog.syslog('%s: %s => %s' % (door.name, door.last_state, new_state))
                 door.last_state = new_state
                 door.last_state_time = time.time()
                 self.updateHandler.handle_updates()
@@ -221,6 +222,7 @@ if __name__ == '__main__':
                 'approx_time_to_close' : 10,
                 'approx_time_to_open': 10}}}
 
+    syslog.openlog('garage_controller')
     controller = Controller(config)
     controller.run()
               
