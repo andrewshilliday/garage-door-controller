@@ -1,5 +1,4 @@
-import syslog
-import time
+import time, syslog, json
 import RPi.GPIO as gpio
 
 from twisted.internet import task
@@ -7,7 +6,6 @@ from twisted.internet import reactor
 from twisted.web import server
 from twisted.web.static import File
 from twisted.web.resource import Resource
-import json
 
 class Door(object):
     last_action = None
@@ -94,13 +92,14 @@ class Controller():
             self.msg_sent = False
                 
     def send_opendoor_message(self):
-        print 'Sending a message'
+        #print 'Sending a message'
         self.msg_sent = True    
         
 
     def toggle(self, doorId):
         for d in self.doors:
             if d.id == doorId:
+                syslog.syslog('%s: toggled' % d.name)
                 d.toggle_relay()
                 return
         
@@ -208,22 +207,10 @@ class UpdateHandler(Resource):
         return server.NOT_DONE_YET
      
 if __name__ == '__main__':
-    config = {'doors': 
-              {'left' : 
-               {'name':'Andy',
-                'relay_pin': 23,
-                'state_pin': 17,
-                'approx_time_to_close' : 10,
-                'approx_time_to_open': 10},
-               'right' : 
-               {'name':'Nic',
-                'relay_pin': 24,
-                'state_pin': 27,
-                'approx_time_to_close' : 10,
-                'approx_time_to_open': 10}}}
-
     syslog.openlog('garage_controller')
-    controller = Controller(config)
+    config_file = open('config.json')
+    controller = Controller(json.load(config_file))
+    config_file.close()
     controller.run()
               
     
