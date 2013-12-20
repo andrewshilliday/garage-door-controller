@@ -14,10 +14,10 @@ This project provides software and hardware installation istructions for monitor
 * Timestamp of last state change for each door
 * Logging of all garage door activity
 
-Hardware Installation:
-----------
-**Harware Requirements:**
+Requirements:
+-----
 
+**Hardware**
 * [Raspberry Pi](www.raspberrypi.org)
 * Micro USB charger (1.5A preferable)
 * [USB WiFi dongle](http://amzn.com/B003MTTJOY) (If connecting wirelessly)
@@ -26,7 +26,12 @@ Hardware Installation:
 * [Magnetic Contact Switch](http://amzn.com/B006VK6YLC) (one per garage door)
 * [Female-to-Female jumper wires](http://amzn.com/B007XPSVMY) (you'll need around 10)
 
-**Hardware Setup:**
+**Software**
+* [Raspian](http://www.raspbian.org/) 
+* Python Twisted web module
+
+Hardware Setup:
+------
 
 *Step 1: Install the magnetic contact switches:*
 
@@ -45,13 +50,28 @@ You'll now have two wires coming out of the garage door opener, which you'll nee
 Software Installation:
 -----
 
- 1. Install [Raspian](http://www.raspbian.org/) onto your Raspberry Pi.
-     1. [Tutorial](http://www.raspberrypi.org/wp-content/uploads/2012/12/quick-start-guide-v1.1.pdf)
-     2. [Another tutorial](http://www.andrewmunsell.com/blog/getting-started-raspberry-pi-install-raspbian)
-     3.  [And a video](http://www.youtube.com/watch?v=aTQjuDfEGWc)!
- 2. Configure your WiFi dongle (if necessary) 
- 3. Install the twisted.python module
+1. Install [Raspian](http://www.raspbian.org/) onto your Raspberry Pi.
+    1. [Tutorial](http://www.raspberrypi.org/wp-content/uploads/2012/12/quick-start-guide-v1.1.pdf)
+    2. [Another tutorial](http://www.andrewmunsell.com/blog/getting-started-raspberry-pi-install-raspbian)
+    3.  [And a video](http://www.youtube.com/watch?v=aTQjuDfEGWc)!
+2. Configure your WiFi dongle (if necessary).
 
+*From here, you'll need to be logged into your RPi (e.g., via SSH).*
+
+3. Install the twisted.python module (used to stand up the web server):
+
+    `sudo apt-get install python-twisted`
+4. Checkout the controller source code
+    1. You can obtain the code via SVN by executing the following:
+    
+        `sudo apt-get install subversion`
+
+        `svn checkout https://github.com/andrewshilliday/garage-door-controller ~/garage-door-controller`
+
+5. Configure the controller application
+
+6. Set to launch at startup.  
+    
 Configuration:
 ----
 
