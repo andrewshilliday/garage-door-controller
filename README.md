@@ -76,16 +76,15 @@ Software Installation:
     That's it; you don't need to build anything.
 
 5.  **Edit `config.json`**
-
-    You'll need one configuration entry for each garage door.  The settings are fairly obvious, but are defined as follows:
     
+    You'll need one configuration entry for each garage door.  The settings are fairly obvious, but are defined as follows:
     - **name**: The name for the garage door as it will appear on the controller app.
     - **relay_pin**: The GPIO pin connecting the RPi to the relay for that door.
     - **state_pin**: The GPIO pin conneting to the contact switch.
     - **approx_time_to_close**: How long the garage door typically takes to close.
     - **approx_time_to_open**: How long the garage door typically takes to open.
     
-6. **Set to launch at startup**
+6.  **Set to launch at startup**
 
     Simply add the following line to your /etc/rc.local file, just above the call to `exit 0`:
     
