@@ -50,32 +50,48 @@ You'll now have two wires coming out of the garage door opener, which you'll nee
 Software Installation:
 -----
 
-1. Install [Raspian](http://www.raspbian.org/) onto your Raspberry Pi.
+1. **Install [Raspian](http://www.raspbian.org/) onto your Raspberry Pi**
     1. [Tutorial](http://www.raspberrypi.org/wp-content/uploads/2012/12/quick-start-guide-v1.1.pdf)
     2. [Another tutorial](http://www.andrewmunsell.com/blog/getting-started-raspberry-pi-install-raspbian)
     3.  [And a video](http://www.youtube.com/watch?v=aTQjuDfEGWc)!
-2. Configure your WiFi dongle (if necessary).
+2. **Configure your WiFi adapter** (if necessary).
+    
+    - [Follow this tutorial](http://www.frodebang.com/post/how-to-install-the-edimax-ew-7811un-wifi-adapter-on-the-raspberry-pi)
+    - [or this one](http://www.youtube.com/watch?v=oGbDawnqbP4)
 
-*From here, you'll need to be logged into your RPi (e.g., via SSH).*
+    *From here, you'll need to be logged into your RPi (e.g., via SSH).*
 
-3. Install the twisted.python module (used to stand up the web server):
+3. **Install the python twisted module** (used to stand up the web server):
 
     `sudo apt-get install python-twisted`
-4. Checkout the controller source code
-    1. You can obtain the code via SVN by executing the following:
     
-        `sudo apt-get install subversion`
-
-        `svn checkout https://github.com/andrewshilliday/garage-door-controller ~/garage-door-controller`
-
-5. Configure the controller application
-
-6. Set to launch at startup.  
+4. **Install the controller application**
+        
+    I just install it to ~/pi/garage-door-controller.  You can install it anywhere you want but make sure to adapt these instructions accordingly. You can obtain the code via SVN by executing the following:
     
-Configuration:
-----
+    `sudo apt-get install subversion`
 
+    `svn checkout https://github.com/andrewshilliday/garage-door-controller ~pi/garage-door-controller`
+    
+    That's it; you don't need to build anything.
 
+5.  **Edit `config.json`**
+
+    You'll need one configuration entry for each garage door.  The settings are fairly obvious, but are defined as follows:
+    
+    - **name**: The name for the garage door as it will appear on the controller app.
+    - **relay_pin**: The GPIO pin connecting the RPi to the relay for that door.
+    - **state_pin**: The GPIO pin conneting to the contact switch.
+    - **approx_time_to_close**: How long the garage door typically takes to close.
+    - **approx_time_to_open**: How long the garage door typically takes to open.
+    
+6. **Set to launch at startup**
+
+    Simply add the following line to your /etc/rc.local file, just above the call to `exit 0`:
+    
+    `(cd ~pi/garage-door-controller; python controller.py)&`
+    
+    
   [1]: http://i.imgur.com/rDx9YIt.png
   [2]: http://i.imgur.com/vPHx7kF.png
   [3]: http://i.imgur.com/bfjx9oy.png
