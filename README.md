@@ -50,7 +50,7 @@ Software Installation:
      2. [Another tutorial](http://www.andrewmunsell.com/blog/getting-started-raspberry-pi-install-raspbian)
      3.  [And a video](http://www.youtube.com/watch?v=aTQjuDfEGWc)!
  2. Configure your WiFi dongle (if necessary) 
-
+ 3. Install the twisted.python module
 
 Configuration:
 ----
