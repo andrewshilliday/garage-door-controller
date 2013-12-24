@@ -120,5 +120,5 @@ This section contains the features I would like to add to the application, but d
   [2]: http://i.imgur.com/bfjx9oy.png
   [3]: http://i.imgur.com/vPHx7kF.png
   [4]: http://i.imgur.com/AkNl6FI.jpg
-  [5]: http://i.imgur.com/BXM1b2y.png
+  [5]: http://i.imgur.com/48bpyG0.png
   
