@@ -8,6 +8,6 @@
   "right" : 
   {"name" : "Right",
    "relay_pin" : 24,
-   "state_pin" : 27,
+   "state_pin" : 21,
    "approx_time_to_close" : 10,
    "approx_time_to_open" : 10}}}
