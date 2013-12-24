@@ -25,7 +25,7 @@ Requirements:
 * 8 GB SD Card
 * Relay Module, 1 channel per garage door (I used [SainSmart](http://amzn.com/B0057OC6D8 ), but there are [other options](http://amzn.com/B00DIMGFHY) as well)
 * [Magnetic Contact Switch](http://amzn.com/B006VK6YLC) (one per garage door)
-* [Female-to-Female jumper wires](http://amzn.com/B007XPSVMY) (you'll need around 10)
+* [Female-to-Female jumper wires](http://amzn.com/B007XPSVMY) (you'll need around 10, or you can just solder)
 * 2-conductor electrical wire
 
 **Software**
