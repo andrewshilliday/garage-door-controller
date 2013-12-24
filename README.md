@@ -49,7 +49,9 @@ The relays are used to mimic a push button being pressed which will in turn caus
 
 ![!\[Wiring the garage door opener\]][4]
     
-You'll now have two wires coming out of the garage door opener, which you'll need to connect to a relay.  Assuming that you've wired them together, you can touch the two wires together and your garage door should open or close.  Wen now need to hook them into one of the relays.  I believe that each pair of wires should be connected to the left two terminals of each corresponding relay (as in the picture below, which shows two doors wired up).   You may want to confirm this with a multi-meter.  You want the line to be normally open (NO) when not receiving any signal.
+*Step 3: Wiring it all together*
+
+The following diagram illustrates how to wire up a two-door controller.  The program can accommodate fewer or additional garage doors (available GPIO pins permitting).
 
 ![enter image description here][5]
 
@@ -90,18 +92,33 @@ Software Installation:
     - **state_pin**: The GPIO pin conneting to the contact switch.
     - **approx_time_to_close**: How long the garage door typically takes to close.
     - **approx_time_to_open**: How long the garage door typically takes to open.
-    
+
+    The **approx_time_to_XXX** options are not particularly crucial.  They tell the program when to shift from the opening or closing state to the "open" or "closed" state.  You don't need to be out there with a stopwatch and you wont break anything if they are off.  In the worst case, you may end up with a slightly odd behavior when closing the garage door whereby it goes from "closing" to "open" (briefly) and then to "closed" when the sensor detects that the door is actually closed.
+
+        
 6.  **Set to launch at startup**
 
     Simply add the following line to your /etc/rc.local file, just above the call to `exit 0`:
     
     `(cd ~pi/garage-door-controller; python controller.py)&`
     
-    
+7. **Using the Controller Web Service**
+The garage door controller application runs directly from the Raspberry Pi as a web service running on port 8080.  It can be used by directing a web browser (on a PC or mobile device) to http://[hostname-or-ip-address]:8080/.  If you want to connect to the raspberry pi from outside your home network, you will need to establish port forwarding in your cable modem.  
+<br>
+When the app is open in your web browser, it should display one entry for each garage door configured in your `config.json` file, along with the current status and timestamp from the time the status was last changed.  Click on any entry to open or close the door (each click will behave as if you pressed the garage button once).
+
+TODO:
+----------  
+This section contains the features I would like to add to the application, but do not currently have time for.  If someone would like to contribute changes or patches, I would be all to happy to incorporate them.
+
+* *Security*: Impose a configurable password on the web service.  Would need to discuss the best strategy (i.e., should we require the pw every time, or can the session persist on any given device which has authenticated).
+* *New Feature*: Add a "close all" button to the bottom of the page to close all doors that have a state other than "closed" or "closing"
+* *Configuration*: Make the port number a configuration option
 
 
   [1]: http://i.imgur.com/rDx9YIt.png
   [2]: http://i.imgur.com/bfjx9oy.png
   [3]: http://i.imgur.com/vPHx7kF.png
   [4]: http://i.imgur.com/AkNl6FI.jpg
-  [5]: http://i.imgur.com/CapnunV.png
+  [5]: http://i.imgur.com/BXM1b2y.png
+  
