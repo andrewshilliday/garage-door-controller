@@ -81,7 +81,7 @@ Software Installation:
     
     `sudo apt-get install subversion`
 
-    `svn checkout https://github.com/andrewshilliday/garage-door-controller ~pi/garage-door-controller`
+    `svn checkout https://github.com/andrewshilliday/garage-door-controller/trunk ~pi/garage-door-controller`
     
     That's it; you don't need to build anything.
 
