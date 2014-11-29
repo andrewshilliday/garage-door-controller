@@ -5,7 +5,22 @@ from twisted.internet import task
 from twisted.internet import reactor
 from twisted.web import server
 from twisted.web.static import File
-from twisted.web.resource import Resource
+from twisted.web.resource import Resource, IResource
+from zope.interface import implements
+
+from twisted.cred import checkers, portal
+from twisted.web.guard import HTTPAuthSessionWrapper, DigestCredentialFactory, BasicCredentialFactory
+
+class HttpPasswordRealm(object):
+    implements(portal.IRealm)
+ 
+    def __init__(self, myresource):
+        self.myresource = myresource
+    
+    def requestAvatar(self, user, mind, *interfaces):
+        if IResource in interfaces:
+            return (IResource, self.myresource, lambda: None)
+        raise NotImplementedError()
 
 class Door(object):
     last_action = None
@@ -109,19 +124,24 @@ class Controller():
             if d.last_state_time >= lastupdate:
                 updates.append((d.id, d.last_state, d.last_state_time))
         return updates
-#         return [(d.name, d.last_state, d.last_state_time) 
-#                 for d in self.doors 
-#                 if d.last_state_time <= lastupdate]
 
     def run(self):
         task.LoopingCall(self.status_check).start(0.5)
         root = File('www')
         root.putChild('upd', self.updateHandler)
         root.putChild('cfg', ConfigHandler(self))
-        root.putChild('clk', ClickHandler(self))
+        
+        clk = ClickHandler(self)
+        args={self.config['site']['username']:self.config['site']['password']}
+        checker = checkers.InMemoryUsernamePasswordDatabaseDontUse(**args)
+        realm = HttpPasswordRealm(clk)
+        p = portal.Portal(realm, [checker])
+        credentialFactory = BasicCredentialFactory("Garage Door Controller")
+        protected_resource = HTTPAuthSessionWrapper(p, [credentialFactory])
+        root.putChild('clk', protected_resource)
+
         site = server.Site(root)
-                
-        reactor.listenTCP(8080, site)  # @UndefinedVariable
+        reactor.listenTCP(self.config['site']['port'], site)  # @UndefinedVariable
         reactor.run()  # @UndefinedVariable
 
 class ClickHandler(Resource):
