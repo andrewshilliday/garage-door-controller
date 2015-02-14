@@ -1,17 +1,37 @@
-{"site":
-{"port":8081,
-  "username":"user",
-  "password":"12345"},
- "doors" : 
- {"left" : 
-  {"name" : "Andy",
-   "relay_pin" : 23,
-   "state_pin" : 17,
-   "approx_time_to_close" : 10,
-   "approx_time_to_open" : 13},
-  "right" : 
-  {"name" : "Nic",
-   "relay_pin" : 24,
-   "state_pin" : 27,
-   "approx_time_to_close" : 10,
-   "approx_time_to_open" : 13}}}
+{
+"smtp":
+	{
+	"smtphost" : "<SMTP HOST>",
+	"smtpport" : 587,
+	"smtp_tls" : "True",
+	"username" : "<USERNAME EMAIL ADDRESS>",
+	"password" : "<PASSWORD>",
+	"to_email" : "<TO EMAIL ADDRESS>"
+	"time_to_wait" : 1800
+	},
+"site" :
+	{
+	"port":8081,
+	"username":"user",
+	"password":"12345"
+	},
+"doors" : 
+	{
+		"left" : 
+		       {
+		       "name" : "Andrew",
+		       "relay_pin" : 23,
+		       "state_pin" : 17,
+		       "approx_time_to_close" : 10,
+		       "approx_time_to_open" : 13
+		       },
+		"right" : 
+			{
+			"name" : "Nicole",
+			"relay_pin" : 24,
+			"state_pin" : 27,
+			"approx_time_to_close" : 10,
+			"approx_time_to_open" : 13
+			}
+	}
+}
