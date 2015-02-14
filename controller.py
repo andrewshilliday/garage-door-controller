@@ -1,4 +1,5 @@
 import time, syslog, json
+import smtplib
 import RPi.GPIO as gpio
 
 from twisted.internet import task
@@ -85,6 +86,12 @@ class Controller():
         for door in self.doors:
             door.last_state = 'unknown'
             door.last_state_time = time.time()
+        
+        self.use_smtp = False
+        smtp_params = ("smtphost", "smtpport", "smtp_tls", "username", 
+                       "password", "to_email", "time_to_wait")
+        self.use_smtp = ('smtp' in config) and set(smtp_params) == set(config['smtp'])
+        syslog.syslog("Are we using SMTP: %s" % self.use_smtp)        
             
     def status_check(self):
         open_doors = False
@@ -98,16 +105,26 @@ class Controller():
                 self.updateHandler.handle_updates()
             if not new_state == 'closed':
                 open_doors = True
-
-        if open_doors and not self.msg_sent and time.time() - self.open_time >= 10:
-            self.send_opendoor_message()
+                
+        if self.use_smtp:
+            ttw = self.config['smtp']["time_to_wait"]
+            if open_doors and not self.msg_sent and time.time() - self.open_time >= ttw:
+                self.send_opendoor_message(int(time.time() - self.open_time))
         
         if not open_doors:
             self.open_time = time.time()
             self.msg_sent = False
                 
-    def send_opendoor_message(self):
-        #print 'Sending a message'
+    def send_opendoor_message(self, opentime):
+        syslog.syslog("Sending open door message. (%s)" % opentime)
+        config = self.config['smtp']
+        server = smtplib.SMTP(config["smtphost"], config["smtpport"])
+        if (config["smtp_tls"] == "True") :
+            server.starttls()
+        server.login(config["username"], config["password"])
+        message = "Your garage doors have been open for %s." % elapsed_time(100+opentime)
+        server.sendmail(config["username"], config["to_email"], message)
+        server.close()
         self.msg_sent = True    
         
 
@@ -225,6 +242,36 @@ class UpdateHandler(Resource):
         
         # tell the client we're not done yet
         return server.NOT_DONE_YET
+
+def elapsed_time(seconds, suffixes=['y','w','d','h','m','s'], add_s=False, separator=' '):
+    """
+    Takes an amount of seconds and turns it into a human-readable amount of time.
+    """
+    # the formatted time string to be returned
+    time = []
+    
+    # the pieces of time to iterate over (days, hours, minutes, etc)
+    # - the first piece in each tuple is the suffix (d, h, w)
+    # - the second piece is the length in seconds (a day is 60s * 60m * 24h)
+    parts = [(suffixes[0], 60 * 60 * 24 * 7 * 52),
+             (suffixes[1], 60 * 60 * 24 * 7),
+             (suffixes[2], 60 * 60 * 24),
+             (suffixes[3], 60 * 60),
+             (suffixes[4], 60),
+             (suffixes[5], 1)]
+    
+    # for each time piece, grab the value and remaining seconds, and add it to
+    # the time string
+    for suffix, length in parts:
+        value = seconds / length
+        if value > 0:
+            seconds = seconds % length
+            time.append('%s%s' % (str(value),
+                                  (suffix, (suffix, suffix + 's')[value > 1])[add_s]))
+        if seconds < 1:
+            break
+
+    return separator.join(time)
      
 if __name__ == '__main__':
     syslog.openlog('garage_controller')
