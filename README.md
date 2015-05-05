@@ -8,7 +8,7 @@ Monitor and control your garage doors from the web via a Raspberry Pi.
 Overview:
 ---------
 
-This project provides software and hardware installation istructions for monitoring and controlling your garage doors remotely (via the web or a smart phone). The software is designed to run on a [Raspberry Pi](www.raspberrypi.org), which is an inexpensive ARM-based computer, and supports:
+This project provides software and hardware installation instructions for monitoring and controlling your garage doors remotely (via the web or a smart phone). The software is designed to run on a [Raspberry Pi](www.raspberrypi.org), which is an inexpensive ARM-based computer, and supports:
 * Monitoring of the state of the garage doors (indicating whether they are open, closed, opening, or closing)
 * Remote control of the garage doors
 * Timestamp of last state change for each door
@@ -19,7 +19,7 @@ Requirements:
 
 **Hardware**
 
-* [Raspberry Pi](www.raspberrypi.org)
+* [Raspberry Pi](http://www.raspberrypi.org)
 * Micro USB charger (1.5A preferable)
 * [USB WiFi dongle](http://amzn.com/B003MTTJOY) (If connecting wirelessly)
 * 8 GB SD Card
@@ -30,7 +30,7 @@ Requirements:
 
 **Software**
 
-* [Raspian](http://www.raspbian.org/)
+* [Raspbian](http://www.raspbian.org/)
 * Python >2.7 (installed with Raspbian)
 * Raspberry Pi GPIO Python libs (installed with Raspbian)
 * Python Twisted web module
@@ -59,7 +59,7 @@ The following diagram illustrates how to wire up a two-door controller.  The pro
 Software Installation:
 -----
 
-1. **Install [Raspian](http://www.raspbian.org/) onto your Raspberry Pi**
+1. **Install [Raspbian](http://www.raspbian.org/) onto your Raspberry Pi**
     1. [Tutorial](http://www.raspberrypi.org/wp-content/uploads/2012/12/quick-start-guide-v1.1.pdf)
     2. [Another tutorial](http://www.andrewmunsell.com/blog/getting-started-raspberry-pi-install-raspbian)
     3.  [And a video](http://www.youtube.com/watch?v=aTQjuDfEGWc)!
