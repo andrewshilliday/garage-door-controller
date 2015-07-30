@@ -6,7 +6,7 @@
 	"smtp_tls" : "True",
 	"username" : "<USERNAME EMAIL ADDRESS>",
 	"password" : "<PASSWORD>",
-	"to_email" : "<TO EMAIL ADDRESS>"
+	"to_email" : "<TO EMAIL ADDRESS>",
 	"time_to_wait" : 1800
 	},
 "site" :
