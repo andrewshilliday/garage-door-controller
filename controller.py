@@ -124,14 +124,15 @@ class Controller():
                 door.msg_sent = True
 
             if new_state == 'closed':
-                door.open_time = time.time()
                 if door.msg_sent == True:
-                    title = "Garage doors closed"
-                    message = "All garage doors are now closed"
+                    title = "%s's garage doors closed" % door.name
+                    message = "%s's garage door is now closed after %s "% (door.name,
+                                                                           elapsed_time(100+int(time.time() - door.open_time)))
                     if self.alert_type == 'smtp':
                         self.send_email(title, message)
                     elif self.alert_type == 'pushbullet':
                         self.send_pushbullet(title, message)
+                door.open_time = time.time()
                 door.msg_sent = False
                 
     def send_email(self, title, message):
