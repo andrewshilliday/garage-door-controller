@@ -115,6 +115,7 @@ This section contains the features I would like to add to the application, but d
 * *Security*: Impose a configurable password on the web service.  Would need to discuss the best strategy (i.e., should we require the pw every time, or can the session persist on any given device which has authenticated).
 * *New Feature*: Add a "close all" button to the bottom of the page to close all doors that have a state other than "closed" or "closing"
 * *Configuration*: Make the port number a configuration option
+* *Occupancy sensors*: Add proximity sensors to check if car port is in use
 
 
   [1]: http://i.imgur.com/rDx9YIt.png
