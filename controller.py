@@ -1,4 +1,4 @@
-import time, syslog, json
+import time, syslog
 import smtplib
 import RPi.GPIO as gpio
 import json
@@ -28,8 +28,6 @@ class HttpPasswordRealm(object):
 class Door(object):
     last_action = None
     last_action_time = None
-
-    time_open = None
     msg_sent = False
 
     def __init__(self, doorId, config):
@@ -103,14 +101,11 @@ class Controller():
             syslog.syslog("No alerts configured")
             
     def status_check(self):
-        open_doors = False
-
         for door in self.doors:
             new_state = door.get_state()
             if (door.last_state != new_state):
                 syslog.syslog('%s: %s => %s' % (door.name, door.last_state, new_state))
                 door.last_state = new_state
-                door.name
                 door.last_state_time = time.time()
                 self.updateHandler.handle_updates()
             if new_state == 'open' and not door.msg_sent and time.time() - door.open_time >= self.ttw:
