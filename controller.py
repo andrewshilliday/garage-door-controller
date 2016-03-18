@@ -89,9 +89,10 @@ class Controller():
         self.alert_type = config['alerts']['alert_type']
         self.ttw = config['alerts']['time_to_wait']
         if self.alert_type == 'smtp':
+            self.use_smtp = False
             smtp_params = ("smtphost", "smtpport", "smtp_tls", "username",
                        "password", "to_email", "time_to_wait")
-            self.use_smtp = ('smtp' in config['alerts']) and set(smtp_params) == set(config['smtp'])
+            self.use_smtp = ('smtp' in config['alerts']) and set(smtp_params) == set(config['alerts']['smtp'])
             syslog.syslog("we are using SMTP")
         elif self.alert_type == 'pushbullet':
             self.pushbullet_access_token = config['alerts']['pushbullet']['access_token']
@@ -131,14 +132,15 @@ class Controller():
                 door.msg_sent = False
                 
     def send_email(self, title, message):
-        syslog.syslog("Sending email message")
-        config = self.config['alerts']['smtp']
-        server = smtplib.SMTP(config["smtphost"], config["smtpport"])
-        if (config["smtp_tls"] == "True") :
-            server.starttls()
-        server.login(config["username"], config["password"])
-        server.sendmail(config["username"], config["to_email"], message)
-        server.close()
+        if self.use_smtp:
+            syslog.syslog("Sending email message")
+            config = self.config['alerts']['smtp']
+            server = smtplib.SMTP(config["smtphost"], config["smtpport"])
+            if (config["smtp_tls"] == "True") :
+                server.starttls()
+            server.login(config["username"], config["password"])
+            server.sendmail(config["username"], config["to_email"], message)
+            server.close()
 
     def send_pushbullet(self, title, message):
         syslog.syslog("Sending pushbutton message")
