@@ -1,6 +1,8 @@
-import time, syslog, json
+import time, syslog
 import smtplib
 import RPi.GPIO as gpio
+import json
+import httplib
 
 from twisted.internet import task
 from twisted.internet import reactor
@@ -26,8 +28,6 @@ class HttpPasswordRealm(object):
 class Door(object):
     last_action = None
     last_action_time = None
-
-    time_open = None
     msg_sent = False
 
     def __init__(self, doorId, config):
@@ -37,6 +37,8 @@ class Door(object):
         self.state_pin = config['state_pin']
         self.time_to_close = config.get('time_to_close', 10)
         self.time_to_open = config.get('time_to_open', 10)
+        self.openhab_name = config.get('openhab_name')
+        self.open_time = time.time()
         gpio.setup(self.relay_pin, gpio.OUT)
         gpio.setup(self.state_pin, gpio.IN, pull_up_down=gpio.PUD_UP)        
         gpio.output(self.relay_pin, True)
@@ -78,24 +80,30 @@ class Controller():
         gpio.setwarnings(False)
         gpio.cleanup()
         gpio.setmode(gpio.BCM)
-        self.open_time = time.time()
-        self.msg_sent = False
         self.config = config
         self.doors = [Door(n,c) for (n,c) in config['doors'].items()]
         self.updateHandler = UpdateHandler(self)
         for door in self.doors:
             door.last_state = 'unknown'
             door.last_state_time = time.time()
-        
-        self.use_smtp = False
-        smtp_params = ("smtphost", "smtpport", "smtp_tls", "username", 
+
+        self.use_alerts = config['config']['use_alerts']
+        self.alert_type = config['alerts']['alert_type']
+        self.ttw = config['alerts']['time_to_wait']
+        if self.alert_type == 'smtp':
+            self.use_smtp = False
+            smtp_params = ("smtphost", "smtpport", "smtp_tls", "username",
                        "password", "to_email", "time_to_wait")
-        self.use_smtp = ('smtp' in config) and set(smtp_params) == set(config['smtp'])
-        syslog.syslog("Are we using SMTP: %s" % self.use_smtp)        
+            self.use_smtp = ('smtp' in config['alerts']) and set(smtp_params) == set(config['alerts']['smtp'])
+            syslog.syslog("we are using SMTP")
+        elif self.alert_type == 'pushbullet':
+            self.pushbullet_access_token = config['alerts']['pushbullet']['access_token']
+            syslog.syslog("we are using Pushbullet")
+        else:
+            self.alert_type = None
+            syslog.syslog("No alerts configured")
             
     def status_check(self):
-        open_doors = False
-
         for door in self.doors:
             new_state = door.get_state()
             if (door.last_state != new_state):
@@ -103,29 +111,61 @@ class Controller():
                 door.last_state = new_state
                 door.last_state_time = time.time()
                 self.updateHandler.handle_updates()
-            if not new_state == 'closed':
-                open_doors = True
+                if self.config['config']['use_openhab'] and (new_state == "open" or new_state == "closed"):
+                    self.update_openhab(door.openhab_name, new_state)
+            if new_state == 'open' and not door.msg_sent and time.time() - door.open_time >= self.ttw:
+                if self.use_alerts:
+                    title = "%s's garage door open" % door.name
+                    message = "%s's garage door has been open for %s" % (door.name,
+                                                                     elapsed_time(100+int(time.time() - door.open_time)))
+                    if self.alert_type == 'smtp':
+                        self.send_email(title, message)
+                    elif self.alert_type == 'pushbullet':
+                        self.send_pushbullet(title, message)
+                    door.msg_sent = True
+
+            if new_state == 'closed':
+                if self.use_alerts:
+                    if door.msg_sent == True:
+                        title = "%s's garage doors closed" % door.name
+                        message = "%s's garage door is now closed after %s "% (door.name,
+                                                                               elapsed_time(100+int(time.time() - door.open_time)))
+                        if self.alert_type == 'smtp':
+                            self.send_email(title, message)
+                        elif self.alert_type == 'pushbullet':
+                            self.send_pushbullet(title, message)
+                door.open_time = time.time()
+                door.msg_sent = False
                 
+    def send_email(self, title, message):
         if self.use_smtp:
-            ttw = self.config['smtp']["time_to_wait"]
-            if open_doors and not self.msg_sent and time.time() - self.open_time >= ttw:
-                self.send_opendoor_message(int(time.time() - self.open_time))
-        
-        if not open_doors:
-            self.open_time = time.time()
-            self.msg_sent = False
-                
-    def send_opendoor_message(self, opentime):
-        syslog.syslog("Sending open door message. (%s)" % opentime)
-        config = self.config['smtp']
-        server = smtplib.SMTP(config["smtphost"], config["smtpport"])
-        if (config["smtp_tls"] == "True") :
-            server.starttls()
-        server.login(config["username"], config["password"])
-        message = "Your garage doors have been open for %s." % elapsed_time(100+opentime)
-        server.sendmail(config["username"], config["to_email"], message)
-        server.close()
-        self.msg_sent = True    
+            syslog.syslog("Sending email message")
+            config = self.config['alerts']['smtp']
+            server = smtplib.SMTP(config["smtphost"], config["smtpport"])
+            if (config["smtp_tls"] == "True") :
+                server.starttls()
+            server.login(config["username"], config["password"])
+            server.sendmail(config["username"], config["to_email"], message)
+            server.close()
+
+    def send_pushbullet(self, title, message):
+        syslog.syslog("Sending pushbutton message")
+        config = self.config['alerts']['pushbullet']
+        conn = httplib.HTTPSConnection("api.pushbullet.com:443")
+        conn.request("POST", "/v2/pushes",
+             json.dumps({
+                 "type": "note",
+                 "title": title,
+                 "body": message,
+             }), {'Authorization': 'Bearer ' + config['access_token'], 'Content-Type': 'application/json'})
+        conn.getresponse()
+
+    def update_openhab(self, item, state):
+        syslog.syslog("Updating openhab")
+        config = self.config['openhab']
+        conn = httplib.HTTPConnection("%s:%s" % (config['server'], config['port']))
+        conn.request("PUT", "/rest/items/%s/state" % item, state)
+        conn.getresponse()
         
 
     def toggle(self, doorId):
@@ -147,16 +187,18 @@ class Controller():
         root = File('www')
         root.putChild('upd', self.updateHandler)
         root.putChild('cfg', ConfigHandler(self))
-        
-        clk = ClickHandler(self)
-        args={self.config['site']['username']:self.config['site']['password']}
-        checker = checkers.InMemoryUsernamePasswordDatabaseDontUse(**args)
-        realm = HttpPasswordRealm(clk)
-        p = portal.Portal(realm, [checker])
-        credentialFactory = BasicCredentialFactory("Garage Door Controller")
-        protected_resource = HTTPAuthSessionWrapper(p, [credentialFactory])
-        root.putChild('clk', protected_resource)
 
+        if self.config['config']['use_auth']:
+            clk = ClickHandler(self)
+            args={self.config['site']['username']:self.config['site']['password']}
+            checker = checkers.InMemoryUsernamePasswordDatabaseDontUse(**args)
+            realm = HttpPasswordRealm(clk)
+            p = portal.Portal(realm, [checker])
+            credentialFactory = BasicCredentialFactory("Garage Door Controller")
+            protected_resource = HTTPAuthSessionWrapper(p, [credentialFactory])
+            root.putChild('clk', protected_resource)
+        else:
+            root.putChild('clk', ClickHandler(self))
         site = server.Site(root)
         reactor.listenTCP(self.config['site']['port'], site)  # @UndefinedVariable
         reactor.run()  # @UndefinedVariable

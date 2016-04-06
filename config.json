@@ -1,14 +1,33 @@
 {
-"smtp":
-	{
-	"smtphost" : "<SMTP HOST>",
-	"smtpport" : 587,
-	"smtp_tls" : "True",
-	"username" : "<USERNAME EMAIL ADDRESS>",
-	"password" : "<PASSWORD>",
-	"to_email" : "<TO EMAIL ADDRESS>",
-	"time_to_wait" : 1800
-	},
+"config":
+{
+	"use_auth":false,
+	"use_alerts":true,
+	"use_openhab":true
+},
+"alerts":
+{
+	"time_to_wait" : 10,
+	"alert_type" : "<smtp OR pushbullet",
+	"smtp":
+		{
+		"smtphost" : "<SMTP HOST>",
+		"smtpport" : 587,
+		"smtp_tls" : "True",
+		"username" : "<USERNAME EMAIL ADDRESS>",
+		"password" : "<PASSWORD>",
+		"to_email" : "<TO EMAIL ADDRESS>"
+		},
+	"pushbullet":
+		{
+		"access_token":"<PUSHBULLET ACCESS TOKEN>"
+		}
+},
+"openhab" :
+{
+	"server" : "<SERVER_IP_ADDRESS>",
+	"port" : "<OPENHAB_SERVER_PORT>"
+},
 "site" :
 	{
 	"port":8081,
@@ -18,20 +37,22 @@
 "doors" : 
 	{
 		"left" : 
-		       {
-		       "name" : "Andrew",
-		       "relay_pin" : 23,
-		       "state_pin" : 17,
-		       "approx_time_to_close" : 10,
-		       "approx_time_to_open" : 13
-		       },
+			{
+			"name" : "Sarah",
+			"relay_pin" : 23,
+			"state_pin" : 17,
+			"approx_time_to_close" : 10,
+			"approx_time_to_open" : 13,
+			"openhab_name" : "g_door_left"
+			},
 		"right" : 
 			{
-			"name" : "Nicole",
+			"name" : "Lior",
 			"relay_pin" : 24,
 			"state_pin" : 27,
 			"approx_time_to_close" : 10,
-			"approx_time_to_open" : 13
+			"approx_time_to_open" : 13,
+			"openhab_name" : "g_door_right"
 			}
 	}
 }

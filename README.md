@@ -1,4 +1,4 @@
-[Garage Door Controller](https://github.com/andrewshilliday/garage-door-controller)
+[Garage Door Controller v1.1](https://github.com/andrewshilliday/garage-door-controller)
 ======================
 
 Monitor and control your garage doors from the web via a Raspberry Pi.
@@ -22,7 +22,7 @@ Requirements:
 * [Raspberry Pi](http://www.raspberrypi.org)
 * Micro USB charger (1.5A preferable)
 * [USB WiFi dongle](http://amzn.com/B003MTTJOY) (If connecting wirelessly)
-* 8 GB SD Card
+* 8 GB micro SD Card
 * Relay Module, 1 channel per garage door (I used [SainSmart](http://amzn.com/B0057OC6D8 ), but there are [other options](http://amzn.com/B00DIMGFHY) as well)
 * [Magnetic Contact Switch](http://amzn.com/B006VK6YLC) (one per garage door)
 * [Female-to-Female jumper wires](http://amzn.com/B007XPSVMY) (you'll need around 10, or you can just solder)
@@ -115,6 +115,8 @@ This section contains the features I would like to add to the application, but d
 * *Security*: Impose a configurable password on the web service.  Would need to discuss the best strategy (i.e., should we require the pw every time, or can the session persist on any given device which has authenticated).
 * *New Feature*: Add a "close all" button to the bottom of the page to close all doors that have a state other than "closed" or "closing"
 * *Configuration*: Make the port number a configuration option
+* *Occupancy sensors*: Add proximity sensors to check if car port is in use
+* *IFTTT Integration*: make a smooth secure way to call the door and get information online
 
 
   [1]: http://i.imgur.com/rDx9YIt.png
