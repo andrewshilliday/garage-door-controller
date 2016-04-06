@@ -1,4 +1,4 @@
-import time, syslog
+import time, syslog, uuid
 import smtplib
 import RPi.GPIO as gpio
 import json
@@ -29,6 +29,7 @@ class Door(object):
     last_action = None
     last_action_time = None
     msg_sent = False
+    pb_iden = None
 
     def __init__(self, doorId, config):
         self.id = doorId
@@ -121,7 +122,7 @@ class Controller():
                     if self.alert_type == 'smtp':
                         self.send_email(title, message)
                     elif self.alert_type == 'pushbullet':
-                        self.send_pushbullet(title, message)
+                        self.send_pushbullet(door, title, message)
                     door.msg_sent = True
 
             if new_state == 'closed':
@@ -133,7 +134,7 @@ class Controller():
                         if self.alert_type == 'smtp':
                             self.send_email(title, message)
                         elif self.alert_type == 'pushbullet':
-                            self.send_pushbullet(title, message)
+                            self.send_pushbullet(door, title, message)
                 door.open_time = time.time()
                 door.msg_sent = False
                 
@@ -148,9 +149,17 @@ class Controller():
             server.sendmail(config["username"], config["to_email"], message)
             server.close()
 
-    def send_pushbullet(self, title, message):
+    def send_pushbullet(self, door, title, message):
         syslog.syslog("Sending pushbutton message")
         config = self.config['alerts']['pushbullet']
+
+        if door.pb_iden != None:
+            conn = httplib.HTTPSConnection("api.pushbullet.com:443")
+            conn.request("DELETE", '/v2/pushes/' + door.pb_iden, "",
+                         {'Authorization': 'Bearer ' + config['access_token'], 'Content-Type': 'application/json'})
+            conn.getresponse()
+            door.pb_iden = None
+                        
         conn = httplib.HTTPSConnection("api.pushbullet.com:443")
         conn.request("POST", "/v2/pushes",
              json.dumps({
@@ -158,7 +167,7 @@ class Controller():
                  "title": title,
                  "body": message,
              }), {'Authorization': 'Bearer ' + config['access_token'], 'Content-Type': 'application/json'})
-        conn.getresponse()
+        door.pb_iden = json.loads(conn.getresponse().read())['iden']
 
     def update_openhab(self, item, state):
         syslog.syslog("Updating openhab")
