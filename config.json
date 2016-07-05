@@ -21,6 +21,11 @@
 	"pushbullet":
 		{
 		"access_token":"<PUSHBULLET ACCESS TOKEN>"
+		},
+	"pushover":
+		{
+		"user_key":"<PUSHOVER USER KEY>",
+		"api_key":"<PUSHOVER API TOKEN/KEY>"
 		}
 },
 "openhab" :

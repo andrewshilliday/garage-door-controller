@@ -3,6 +3,7 @@ import smtplib
 import RPi.GPIO as gpio
 import json
 import httplib
+import urllib
 
 from twisted.internet import task
 from twisted.internet import reactor
@@ -100,6 +101,9 @@ class Controller():
         elif self.alert_type == 'pushbullet':
             self.pushbullet_access_token = config['alerts']['pushbullet']['access_token']
             syslog.syslog("we are using Pushbullet")
+        elif self.alert_type == 'pushover':
+            self.pushover_user_key = config['alerts']['pushover']['user_key']
+            syslog.syslog("we are using Pushover")
         else:
             self.alert_type = None
             syslog.syslog("No alerts configured")
@@ -123,6 +127,8 @@ class Controller():
                         self.send_email(title, message)
                     elif self.alert_type == 'pushbullet':
                         self.send_pushbullet(door, title, message)
+                    elif self.alert_type == 'pushover':
+                        self.send_pushover(door, title, message)
                     door.msg_sent = True
 
             if new_state == 'closed':
@@ -135,6 +141,8 @@ class Controller():
                             self.send_email(title, message)
                         elif self.alert_type == 'pushbullet':
                             self.send_pushbullet(door, title, message)
+                        elif self.alert_type == 'pushover':
+                            self.send_pushover(door, title, message)
                 door.open_time = time.time()
                 door.msg_sent = False
                 
@@ -168,6 +176,18 @@ class Controller():
                  "body": message,
              }), {'Authorization': 'Bearer ' + config['access_token'], 'Content-Type': 'application/json'})
         door.pb_iden = json.loads(conn.getresponse().read())['iden']
+    def send_pushover(self, door, title, message):
+        syslog.syslog("Sending Pushover message")
+        config = self.config['alerts']['pushover']
+        conn = httplib.HTTPSConnection("api.pushover.net:443")
+        conn.request("POST", "/1/messages.json",
+                urllib.urlencode({
+                    "token": config['api_key'],
+                    "user": config['user_key'],
+                    "title": title,
+                    "message": message,
+                }), { "Content-type": "application/x-www-form-urlencoded" })
+        conn.getresponse()
 
     def update_openhab(self, item, state):
         syslog.syslog("Updating openhab")
