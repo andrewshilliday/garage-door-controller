@@ -91,6 +91,7 @@ Software Installation:
     - **name**: The name for the garage door as it will appear on the controller app.
     - **relay_pin**: The GPIO pin connecting the RPi to the relay for that door.
     - **state_pin**: The GPIO pin conneting to the contact switch.
+    - **state_pin_closed_value**: The GPIO pin value (0 or 1) that indicates the door is closed. Defaults to 0.
     - **approx_time_to_close**: How long the garage door typically takes to close.
     - **approx_time_to_open**: How long the garage door typically takes to open.
 
