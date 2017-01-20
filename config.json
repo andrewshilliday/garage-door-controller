@@ -3,7 +3,7 @@
 {
 	"use_auth":false,
 	"use_alerts":true,
-	"use_openhab":true
+	"use_openhab":false
 },
 "alerts":
 {
