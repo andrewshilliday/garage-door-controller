@@ -213,6 +213,7 @@ class Controller():
     def run(self):
         task.LoopingCall(self.status_check).start(0.5)
         root = File('www')
+        root.putChild('st', StatusHandler(self))
         root.putChild('upd', self.updateHandler)
         root.putChild('cfg', ConfigHandler(self))
 
@@ -242,6 +243,20 @@ class ClickHandler(Resource):
         door = request.args['id'][0]
         self.controller.toggle(door)
         return 'OK'
+
+class StatusHandler(Resource):
+    isLeaf = True
+
+    def __init__ (self, controller):
+        Resource.__init__(self)
+        self.controller = controller
+
+    def render(self, request):
+        door = request.args['id'][0]
+        for d in self.controller.doors:
+            if (d.id == door):
+                return d.last_state
+        return ''
 
 class ConfigHandler(Resource):
     isLeaf = True

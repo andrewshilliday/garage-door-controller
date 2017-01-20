@@ -20,7 +20,7 @@
 		},
 	"pushbullet":
 		{
-		"access_token":"<ACCESS TOKEN>"
+		"access_token":"o.KS9gPZPXzQImUZp75pMcQXHmOOOC3OG4"
 		},
 	"pushover":
 		{
@@ -35,7 +35,7 @@
 },
 "site" :
 	{
-	"port":8080,
+	"port":8081,
 	"username":"user",
 	"password":"12345"
 	},
@@ -43,22 +43,22 @@
 	{
 		"left" : 
 			{
-			"name" : "Left",
+			"name" : "Andrew",
 			"relay_pin" : 23,
 			"state_pin" : 17,
 			"state_pin_closed_value" : 0,
-			"approx_time_to_close" : 10,
-			"approx_time_to_open" : 13,
+			"approx_time_to_close" : 15,
+			"approx_time_to_open" : 15,
 			"openhab_name" : "g_door_left"
 			},
 		"right" : 
 			{
-			"name" : "Right",
+			"name" : "Nicole",
 			"relay_pin" : 24,
 			"state_pin" : 27,
 			"state_pin_closed_value" : 0,
-			"approx_time_to_close" : 10,
-			"approx_time_to_open" : 13,
+			"approx_time_to_close" : 15,
+			"approx_time_to_open" : 15,
 			"openhab_name" : "g_door_right"
 			}
 	}
