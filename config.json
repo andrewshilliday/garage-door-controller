@@ -20,7 +20,7 @@
 		},
 	"pushbullet":
 		{
-		"access_token":"o.KS9gPZPXzQImUZp75pMcQXHmOOOC3OG4"
+		"access_token":"<ACCESS TOKEN>"
 		},
 	"pushover":
 		{
@@ -43,7 +43,7 @@
 	{
 		"left" : 
 			{
-			"name" : "Andrew",
+			"name" : "Left",
 			"relay_pin" : 23,
 			"state_pin" : 17,
 			"state_pin_closed_value" : 0,
@@ -53,7 +53,7 @@
 			},
 		"right" : 
 			{
-			"name" : "Nicole",
+			"name" : "Right",
 			"relay_pin" : 24,
 			"state_pin" : 27,
 			"state_pin_closed_value" : 0,
