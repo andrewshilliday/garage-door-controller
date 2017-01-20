@@ -95,9 +95,8 @@ class Controller():
         self.ttw = config['alerts']['time_to_wait']
         if self.alert_type == 'smtp':
             self.use_smtp = False
-            smtp_params = ("smtphost", "smtpport", "smtp_tls", "username",
-                       "password", "to_email", "time_to_wait")
-            self.use_smtp = ('smtp' in config['alerts']) and set(smtp_params) == set(config['alerts']['smtp'])
+            smtp_params = ("smtphost", "smtpport", "smtp_tls", "username","password", "to_email")
+            self.use_smtp = ('smtp' in config['alerts']) and set(smtp_params) <= set(config['alerts']['smtp'])
             syslog.syslog("we are using SMTP")
         elif self.alert_type == 'pushbullet':
             self.pushbullet_access_token = config['alerts']['pushbullet']['access_token']
