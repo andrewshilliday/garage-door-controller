@@ -253,7 +253,7 @@ class ConfigHandler(Resource):
         request.setHeader('Content-Type', 'application/json')
 
         return json.dumps([(d.id, d.name, d.last_state, d.last_state_time)
-                            for d in controller.doors])
+                            for d in self.controller.doors])
 
 
 class UpdateHandler(Resource):
@@ -302,7 +302,7 @@ class UpdateHandler(Resource):
             #print "request received " + str(request.lastupdate)
 
         # Can we accommodate this request now?
-        updates = controller.get_updates(request.lastupdate)
+        updates = self.controller.get_updates(request.lastupdate)
         if updates != []:
             return self.format_updates(request, updates)
 

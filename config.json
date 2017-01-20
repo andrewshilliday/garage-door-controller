@@ -1,15 +1,15 @@
 {
 "config":
 {
-	"use_auth":false,
+	"use_auth":true,
 	"use_alerts":true,
 	"use_openhab":false
 },
 "alerts":
 {
 	"time_to_wait" : 10,
-	"alert_type" : "<smtp OR pushbullet>",
-	"smtp":
+	"alert_type" : "pushbullet",
+        "smtp":
 		{
 		"smtphost" : "<SMTP HOST>",
 		"smtpport" : 587,
@@ -20,7 +20,7 @@
 		},
 	"pushbullet":
 		{
-		"access_token":"<PUSHBULLET ACCESS TOKEN>"
+		"access_token":"o.KS9gPZPXzQImUZp75pMcQXHmOOOC3OG4"
 		},
 	"pushover":
 		{
@@ -30,8 +30,8 @@
 },
 "openhab" :
 {
-	"server" : "<SERVER_IP_ADDRESS>",
-	"port" : "<OPENHAB_SERVER_PORT>"
+	"server" : "",
+	"port" : ""
 },
 "site" :
 	{
@@ -43,7 +43,7 @@
 	{
 		"left" : 
 			{
-			"name" : "Sarah",
+			"name" : "Andrew",
 			"relay_pin" : 23,
 			"state_pin" : 17,
 			"state_pin_closed_value" : 0,
@@ -53,7 +53,7 @@
 			},
 		"right" : 
 			{
-			"name" : "Lior",
+			"name" : "Nicole",
 			"relay_pin" : 24,
 			"state_pin" : 27,
 			"state_pin_closed_value" : 0,
