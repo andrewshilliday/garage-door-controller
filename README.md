@@ -56,6 +56,8 @@ The following diagram illustrates how to wire up a two-door controller.  The pro
 
 ![enter image description here][5]
 
+Note: User [@lamping7](https://github.com/lamping7) has kindly informed me that my wiring schematic is not good.  He warns that the relay should not be powered directly off of the Raspberry Pi.  See his explanation and proposed solution [here](https://github.com/andrewshilliday/garage-door-controller/issues/16).  That being said, I've been running my Raspberry Pi according to the above schematic for years now and I haven't yet fried anything or set fire to my house.  Your milage may vary.
+
 Software Installation:
 -----
 
