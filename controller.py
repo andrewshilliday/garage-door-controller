@@ -37,6 +37,7 @@ class Door(object):
         self.name = config['name']
         self.relay_pin = config['relay_pin']
         self.state_pin = config['state_pin']
+        self.state_pin_closed_value = config.get('state_pin_closed_value', 0)
         self.time_to_close = config.get('time_to_close', 10)
         self.time_to_open = config.get('time_to_open', 10)
         self.openhab_name = config.get('openhab_name')
@@ -46,7 +47,7 @@ class Door(object):
         gpio.output(self.relay_pin, True)
         
     def get_state(self):
-        if gpio.input(self.state_pin) == 0:
+        if gpio.input(self.state_pin) == self.state_pin_closed_value:
             return 'closed'
         elif self.last_action == 'open':
             if time.time() - self.last_action_time >= self.time_to_open:

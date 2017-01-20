@@ -46,6 +46,7 @@
 			"name" : "Sarah",
 			"relay_pin" : 23,
 			"state_pin" : 17,
+			"state_pin_closed_value" : 0,
 			"approx_time_to_close" : 10,
 			"approx_time_to_open" : 13,
 			"openhab_name" : "g_door_left"
@@ -55,6 +56,7 @@
 			"name" : "Lior",
 			"relay_pin" : 24,
 			"state_pin" : 27,
+			"state_pin_closed_value" : 0,
 			"approx_time_to_close" : 10,
 			"approx_time_to_open" : 13,
 			"openhab_name" : "g_door_right"
