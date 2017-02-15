@@ -55,7 +55,7 @@
 			{
 			"name" : "RIGHT",
 			"relay_pin" : 24,
-			"state_pin" : 27,
+			"state_pin" : 21,
 			"state_pin_closed_value" : 0,
 			"approx_time_to_close" : 15,
 			"approx_time_to_open" : 15,
