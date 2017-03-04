@@ -8,7 +8,7 @@
 "alerts":
 {
 	"time_to_wait" : 10,
-	"alert_type" : "pushbullet",
+	"alert_type" : None,
         "smtp":
 		{
 		"smtphost" : "<SMTP HOST>",
