@@ -1,9 +1,12 @@
+"""Software to monitor and control garage doors via a raspberry pi."""
+
 import time, syslog, uuid
 import smtplib
 import RPi.GPIO as gpio
 import json
 import httplib
 import urllib
+import subprocess
 
 from twisted.internet import task
 from twisted.internet import reactor
@@ -14,6 +17,8 @@ from zope.interface import implements
 
 from twisted.cred import checkers, portal
 from twisted.web.guard import HTTPAuthSessionWrapper, BasicCredentialFactory
+
+
 
 class HttpPasswordRealm(object):
     implements(portal.IRealm)
@@ -78,13 +83,13 @@ class Door(object):
         time.sleep(0.2)
         gpio.output(self.relay_pin, True)
 
-class Controller():
+class Controller(object):
     def __init__(self, config):
         gpio.setwarnings(False)
         gpio.cleanup()
         gpio.setmode(gpio.BCM)
         self.config = config
-        self.doors = [Door(n,c) for (n,c) in config['doors'].items()]
+        self.doors = [Door(n, c) for (n, c) in config['doors'].items()]
         self.updateHandler = UpdateHandler(self)
         for door in self.doors:
             door.last_state = 'unknown'
@@ -95,7 +100,7 @@ class Controller():
         self.ttw = config['alerts']['time_to_wait']
         if self.alert_type == 'smtp':
             self.use_smtp = False
-            smtp_params = ("smtphost", "smtpport", "smtp_tls", "username","password", "to_email")
+            smtp_params = ("smtphost", "smtpport", "smtp_tls", "username", "password", "to_email")
             self.use_smtp = ('smtp' in config['alerts']) and set(smtp_params) <= set(config['alerts']['smtp'])
             syslog.syslog("we are using SMTP")
         elif self.alert_type == 'pushbullet':
@@ -121,8 +126,8 @@ class Controller():
             if new_state == 'open' and not door.msg_sent and time.time() - door.open_time >= self.ttw:
                 if self.use_alerts:
                     title = "%s's garage door open" % door.name
-                    message = "%s's garage door has been open for %s" % (door.name,
-                                                                     elapsed_time(int(time.time() - door.open_time)))
+                    etime = elapsed_time(int(time.time() - door.open_time))
+                    message = "%s's garage door has been open for %s" % (door.name, etime)
                     if self.alert_type == 'smtp':
                         self.send_email(title, message)
                     elif self.alert_type == 'pushbullet':
@@ -135,8 +140,8 @@ class Controller():
                 if self.use_alerts:
                     if door.msg_sent == True:
                         title = "%s's garage doors closed" % door.name
-                        message = "%s's garage door is now closed after %s "% (door.name,
-                                                                               elapsed_time(int(time.time() - door.open_time)))
+                        etime = elapsed_time(int(time.time() - door.open_time))
+                        message = "%s's garage door is now closed after %s "% (door.name, etime)
                         if self.alert_type == 'smtp':
                             self.send_email(title, message)
                         elif self.alert_type == 'pushbullet':
@@ -175,7 +180,9 @@ class Controller():
                  "title": title,
                  "body": message,
              }), {'Authorization': 'Bearer ' + config['access_token'], 'Content-Type': 'application/json'})
-        door.pb_iden = json.loads(conn.getresponse().read())['iden']
+        response = conn.getresponse().read()
+        print(response)
+        door.pb_iden = json.loads(response)['iden']
     def send_pushover(self, door, title, message):
         syslog.syslog("Sending Pushover message")
         config = self.config['alerts']['pushover']
@@ -216,7 +223,8 @@ class Controller():
         root.putChild('st', StatusHandler(self))
         root.putChild('upd', self.updateHandler)
         root.putChild('cfg', ConfigHandler(self))
-
+        root.putChild('upt', UptimeHandler(self))
+        
         if self.config['config']['use_auth']:
             clk = ClickHandler(self)
             args={self.config['site']['username']:self.config['site']['password']}
@@ -271,6 +279,20 @@ class ConfigHandler(Resource):
                             for d in self.controller.doors])
 
 
+class UptimeHandler(Resource):
+    isLeaf = True
+    def __init__ (self, controller):
+        Resource.__init__(self)
+
+    def render(self,request):
+        request.setHeader('Content-Type', 'application/json')
+        uptime = subprocess.check_output(['uptime', '-p']).strip()
+        uptime = uptime.replace("up ", "")
+        uptime = uptime.split(",")[0].replace(",","").strip()
+        if (uptime == "up"):
+            uptime = "0 mins"
+        return json.dumps("Uptime: " + uptime)
+    
 class UpdateHandler(Resource):
     isLeaf = True
     def __init__(self, controller):
@@ -283,7 +305,7 @@ class UpdateHandler(Resource):
             updates = self.controller.get_updates(request.lastupdate)
             if updates != []:
                 self.send_updates(request, updates)
-                self.delayed_requests.remove(request);
+                self.delayed_requests.remove(request)
 
     def format_updates(self, request, update):
         response = json.dumps({'timestamp': int(time.time()), 'update':update})

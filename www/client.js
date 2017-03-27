@@ -34,6 +34,22 @@ $.ajax({
     }
 });
 
+function uptime() {
+     $.ajax({
+ 	url:"upt",
+ 	success: function(data) {
+ 	    $("#uptime").html(data)
+ 	    setTimeout('uptime()', 60000)
+ 	},
+ 	error: function(XMLHttpRequest, textStatus, errorThrown) {
+ 	    setTimeout('uptime()', 60000)
+ 	},
+ 	dataType: "json",
+ 	timeout: 60000	
+     });
+}
+
+
 function poll(){
     $.ajax({ 
     	url: "upd",
@@ -58,7 +74,12 @@ function poll(){
     	//complete: poll,
     	dataType: "json", 
     	timeout: 30000
-    });
+    });    
 };
 
-$(document).live('pageinit', poll);
+function init() {
+    uptime()
+    poll()
+}
+
+$(document).live('pageinit', init);
