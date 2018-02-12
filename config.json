@@ -20,7 +20,7 @@
 		},
 	"pushbullet":
 		{
-		"access_token":"<ACCES TOKEN>"
+		"access_token":"<ACCESS TOKEN>"
 		},
 	"pushover":
 		{
