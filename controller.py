@@ -69,6 +69,9 @@ class Door(object):
 
     def toggle_relay(self):
         state = self.get_state()
+        if state == 'opening' or state == 'closing': #don't do anything if opening/closing
+            return
+        
         if (state == 'open'):
             self.last_action = 'close'
             self.last_action_time = time.time()
