@@ -13,7 +13,8 @@
             "smtp_tls":"True",
             "username":"<USERNAME EMAIL ADDRESS>",
             "password":"<PASSWORD>",
-            "to_email":"<TO EMAIL ADDRESS>"
+            "to_email":"<TO EMAIL ADDRESS>",
+            "subject":"<EMAIL SUBJECT>"
         },
         "pushbullet":{  
             "access_token":"<ACCESS TOKEN>"

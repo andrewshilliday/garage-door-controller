@@ -18,6 +18,9 @@ from zope.interface import implements
 from twisted.cred import checkers, portal
 from twisted.web.guard import HTTPAuthSessionWrapper, BasicCredentialFactory
 
+from email.mime.text import MIMEText
+from email.utils import formatdate
+from email.utils import make_msgid
 
 
 class HttpPasswordRealm(object):
@@ -160,11 +163,19 @@ class Controller(object):
             if self.use_smtp:
                 syslog.syslog("Sending email message")
                 config = self.config['alerts']['smtp']
+                
+                message = MIMEText(message)
+                message['Date'] = formatdate()
+                message['From'] = config["username"]
+                message['To'] = config["to_email"]
+                message['Subject'] = config["subject"]
+                message['Message-ID'] = make_msgid()
+                
                 server = smtplib.SMTP(config["smtphost"], config["smtpport"])
                 if (config["smtp_tls"] == "True") :
                     server.starttls()
                 server.login(config["username"], config["password"])
-                server.sendmail(config["username"], config["to_email"], message)
+                server.sendmail(config["username"], config["to_email"], message.as_string())
                 server.close()
         except Exception as inst:
             sys.syslog("Error sending email: " + str(inst))
