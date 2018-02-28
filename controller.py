@@ -70,7 +70,7 @@ class Door(object):
         else:
             return 'open'
 
-    def toggle_relay(self, desired_state):
+    def toggle_relay(self):
         state = self.get_state()
         if (state == 'open'):
             self.last_action = 'close'
@@ -81,11 +81,10 @@ class Door(object):
         else:
             self.last_action = None
             self.last_action_time = None
-        
-        if desired_state == 'toggle' or (state == 'open' and desired_state == 'closed') or (state == 'closed' and desired_state == 'open'):
-            gpio.output(self.relay_pin, False)
-            time.sleep(0.2)
-            gpio.output(self.relay_pin, True)
+
+        gpio.output(self.relay_pin, False)
+        time.sleep(0.2)
+        gpio.output(self.relay_pin, True)
 
 class Controller(object):
     def __init__(self, config):
@@ -228,11 +227,11 @@ class Controller(object):
         except:
             sys.syslog("Error updating openhab: " + str(inst))
 
-    def toggle(self, doorId, desired_state):
+    def toggle(self, doorId):
         for d in self.doors:
             if d.id == doorId:
                 syslog.syslog('%s: toggled' % d.name)
-                d.toggle_relay(desired_state)
+                d.toggle_relay()
                 return
 
     def get_updates(self, lastupdate):
@@ -274,11 +273,7 @@ class ClickHandler(Resource):
 
     def render(self, request):
         door = request.args['id'][0]
-        desired_state = 'toggle' #default
-        if 'desired_state' in request.args:
-           desired_state = request.args['desired_state'][0]
-        
-        self.controller.toggle(door, desired_state)
+        self.controller.toggle(door)
         return 'OK'
 
 class StatusHandler(Resource):
