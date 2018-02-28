@@ -1,65 +1,56 @@
-{
-"config":
-{
-	"use_auth":true,
-	"use_alerts":true,
-	"use_openhab":false
-},
-"alerts":
-{
-	"time_to_wait" : 10,
-	"alert_type" : null,
-        "smtp":
-		{
-		"smtphost" : "<SMTP HOST>",
-		"smtpport" : 587,
-		"smtp_tls" : "True",
-		"username" : "<USERNAME EMAIL ADDRESS>",
-		"password" : "<PASSWORD>",
-		"to_email" : "<TO EMAIL ADDRESS>"
-		},
-	"pushbullet":
-		{
-		"access_token":"<ACCESS TOKEN>"
-		},
-	"pushover":
-		{
-		"user_key":"<PUSHOVER USER KEY>",
-		"api_key":"<PUSHOVER API TOKEN/KEY>"
-		}
-},
-"openhab" :
-{
-	"server" : "",
-	"port" : ""
-},
-"site" :
-	{
-	"port":8081,
-	"username":"user",
-	"password":"12345"
-	},
-"doors" : 
-	{
-		"left" : 
-			{
-			"name" : "LEFT",
-			"relay_pin" : 23,
-			"state_pin" : 17,
-			"state_pin_closed_value" : 0,
-			"approx_time_to_close" : 15,
-			"approx_time_to_open" : 15,
-			"openhab_name" : "g_door_left"
-			},
-		"right" : 
-			{
-			"name" : "RIGHT",
-			"relay_pin" : 24,
-			"state_pin" : 21,
-			"state_pin_closed_value" : 0,
-			"approx_time_to_close" : 15,
-			"approx_time_to_open" : 15,
-			"openhab_name" : "g_door_right"
-			}
-	}
+{  
+    "config":{  
+        "use_auth":true,
+        "use_alerts":true,
+        "use_openhab":false
+    },
+    "alerts":{  
+        "time_to_wait":10,
+        "alert_type":null,
+        "smtp":{  
+            "smtphost":"<SMTP HOST>",
+            "smtpport":587,
+            "smtp_tls":"True",
+            "username":"<USERNAME EMAIL ADDRESS>",
+            "password":"<PASSWORD>",
+            "to_email":"<TO EMAIL ADDRESS>",
+            "subject":"<EMAIL SUBJECT>"
+        },
+        "pushbullet":{  
+            "access_token":"<ACCESS TOKEN>"
+        },
+        "pushover":{  
+            "user_key":"<PUSHOVER USER KEY>",
+            "api_key":"<PUSHOVER API TOKEN/KEY>"
+        }
+    },
+    "openhab":{  
+        "server":"",
+        "port":""
+    },
+    "site":{  
+        "port":8081,
+        "username":"user",
+        "password":"12345"
+    },
+    "doors":{  
+        "left":{  
+            "name":"LEFT",
+            "relay_pin":23,
+            "state_pin":17,
+            "state_pin_closed_value":0,
+            "approx_time_to_close":15,
+            "approx_time_to_open":15,
+            "openhab_name":"g_door_left"
+        },
+        "right":{  
+            "name":"RIGHT",
+            "relay_pin":24,
+            "state_pin":21,
+            "state_pin_closed_value":0,
+            "approx_time_to_close":15,
+            "approx_time_to_open":15,
+            "openhab_name":"g_door_right"
+        }
+    }
 }
