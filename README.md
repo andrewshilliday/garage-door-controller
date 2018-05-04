@@ -117,11 +117,22 @@ Software Installation:
     - **approx_time_to_open**: How long the garage door typically takes to open.
 
     The **approx_time_to_XXX** options are not particularly crucial.  They tell the program when to shift from the opening or closing state to the "open" or "closed" state.  You don't need to be out there with a stopwatch and you wont break anything if they are off.  In the worst case, you may end up with a slightly odd behavior when closing the garage door whereby it goes from "closing" to "open" (briefly) and then to "closed" when the sensor detects that the door is actually closed.
-
-        
+    
 7.  **Set to launch at startup**
-
-    Simply add the following line to your /etc/rc.local file, just above the call to `exit 0`:
+    
+    For Raspbian, a service script has been created. You can install it using the following:
+    
+    `sudo cp /home/pi/garage-door-controller/extra/garagecontrollerd.service /lib/systemd/system`
+    
+    `sudo chmod 644 /lib/systemd/system/garagecontrollerd.service`
+    
+    `sudo systemctl daemon-reload`
+    
+    `sudo systemctl enable garagecontrollerd.service`
+    
+    `sudo systemctl start garagecontrollerd.service`
+    
+    For other distributions; simply add the following line to your /etc/rc.local file, just above the call to `exit 0`:
     
     `(cd ~pi/garage-door-controller; python controller.py)&`
     
