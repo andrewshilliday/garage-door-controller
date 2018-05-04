@@ -1,5 +1,6 @@
 {  
     "config":{  
+        "use_https":false,
         "use_auth":true,
         "use_alerts":true,
         "use_openhab":false
@@ -30,8 +31,11 @@
     },
     "site":{  
         "port":8081,
+        "port_secure":8444,
         "username":"user",
-        "password":"12345"
+        "password":"12345",
+        "ssl_key":"/home/pi/garage-door-controller-cert/localhost.key",
+        "ssl_cert":"/home/pi/garage-door-controller-cert/localhost.crt"
     },
     "doors":{  
         "left":{  
