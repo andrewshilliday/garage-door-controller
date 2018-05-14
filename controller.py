@@ -10,6 +10,7 @@ import subprocess
 
 from twisted.internet import task
 from twisted.internet import reactor
+from twisted.internet import ssl
 from twisted.web import server
 from twisted.web.static import File
 from twisted.web.resource import Resource, IResource
@@ -241,6 +242,13 @@ class Controller(object):
                 updates.append((d.id, d.last_state, d.last_state_time))
         return updates
 
+    def get_config_with_default(self, config, param, default):
+        if not config:
+            return default
+        if not param in config:
+            return default
+        return config[param]
+
     def run(self):
         task.LoopingCall(self.status_check).start(0.5)
         root = File('www')
@@ -260,9 +268,16 @@ class Controller(object):
             root.putChild('clk', protected_resource)
         else:
             root.putChild('clk', ClickHandler(self))
+        
         site = server.Site(root)
-        reactor.listenTCP(self.config['site']['port'], site)  # @UndefinedVariable
-        reactor.run()  # @UndefinedVariable
+        
+        if not self.get_config_with_default(self.config['config'], 'use_https', False):
+            reactor.listenTCP(self.config['site']['port'], site)  # @UndefinedVariable
+            reactor.run()  # @UndefinedVariable
+        else:
+            sslContext = ssl.DefaultOpenSSLContextFactory(self.config['site']['ssl_key'], self.config['site']['ssl_cert'])
+            reactor.listenSSL(self.config['site']['port_secure'], site, sslContext)  # @UndefinedVariable
+            reactor.run()  # @UndefinedVariable
 
 class ClickHandler(Resource):
     isLeaf = True
