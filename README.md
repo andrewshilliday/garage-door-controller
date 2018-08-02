@@ -14,6 +14,11 @@ This project provides software and hardware installation instructions for monito
 * Timestamp of last state change for each door
 * Logging of all garage door activity
 
+Mobile App:
+-----------
+
+* Native iOS mobile app is available on the [iTunes App Store](https://itunes.apple.com/app/id1418995156)
+
 Requirements:
 -----
 
