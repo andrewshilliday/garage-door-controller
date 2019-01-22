@@ -175,7 +175,7 @@ class Controller(object):
                 server.sendmail(config["username"], config["to_email"], message.as_string())
                 server.close()
         except Exception as inst:
-            sys.syslog("Error sending email: " + str(inst))
+            syslog.syslog("Error sending email: " + str(inst))
 
     def send_pushbullet(self, door, title, message):
         try:
@@ -200,7 +200,7 @@ class Controller(object):
             print(response)
             door.pb_iden = json.loads(response)['iden']
         except Exception as inst:
-            sys.syslog("Error sending to pushbullet: " + str(inst))
+            syslog.syslog("Error sending to pushbullet: " + str(inst))
 
     def send_pushover(self, door, title, message):
         try:
@@ -216,7 +216,7 @@ class Controller(object):
                     }), { "Content-type": "application/x-www-form-urlencoded" })
             conn.getresponse()
         except Exception as inst:
-            sys.syslog("Error sending to pushover: " + str(inst))
+            syslog.syslog("Error sending to pushover: " + str(inst))
 
     def update_openhab(self, item, state):
         try:
@@ -226,7 +226,7 @@ class Controller(object):
             conn.request("PUT", "/rest/items/%s/state" % item, state)
             conn.getresponse()
         except:
-            sys.syslog("Error updating openhab: " + str(inst))
+            syslog.syslog("Error updating openhab: " + str(inst))
 
     def toggle(self, doorId):
         for d in self.doors:
