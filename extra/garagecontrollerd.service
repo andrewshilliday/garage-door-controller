@@ -1,0 +1,12 @@
+[Unit]
+Description=Garage door controller software written in Python for use on the Raspberry Pi.
+After=multi-user.target
+ 
+[Service]
+Type=simple
+WorkingDirectory=/home/pi/garage-door-controller
+ExecStart=/usr/bin/python /home/pi/garage-door-controller/controller.py
+Restart=on-abort
+ 
+[Install]
+WantedBy=multi-user.target
