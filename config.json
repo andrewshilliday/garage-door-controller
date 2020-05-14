@@ -1,14 +1,14 @@
-{  
-    "config":{  
+{
+    "config":{
         "use_https":false,
         "use_auth":true,
         "use_alerts":true,
         "use_openhab":false
     },
-    "alerts":{  
+    "alerts":{
         "time_to_wait":10,
         "alert_type":null,
-        "smtp":{  
+        "smtp":{
             "smtphost":"<SMTP HOST>",
             "smtpport":587,
             "smtp_tls":"True",
@@ -17,19 +17,23 @@
             "to_email":"<TO EMAIL ADDRESS>",
             "subject":"<EMAIL SUBJECT>"
         },
-        "pushbullet":{  
+        "pushbullet":{
             "access_token":"<ACCESS TOKEN>"
         },
-        "pushover":{  
+        "pushover":{
             "user_key":"<PUSHOVER USER KEY>",
             "api_key":"<PUSHOVER API TOKEN/KEY>"
+        },
+        "telegram":{
+            "chat_id":"<CHAT_ID>",
+            "api_token":"<API_TOKEN>"
         }
     },
-    "openhab":{  
+    "openhab":{
         "server":"",
         "port":""
     },
-    "site":{  
+    "site":{
         "port":8081,
         "port_secure":8444,
         "username":"user",
@@ -37,8 +41,8 @@
         "ssl_key":"/home/pi/garage-door-controller-cert/localhost.key",
         "ssl_cert":"/home/pi/garage-door-controller-cert/localhost.crt"
     },
-    "doors":{  
-        "left":{  
+    "doors":{
+        "left":{
             "name":"LEFT",
             "relay_pin":23,
             "state_pin":27,
@@ -47,7 +51,7 @@
             "approx_time_to_open":15,
             "openhab_name":"g_door_left"
         },
-        "right":{  
+        "right":{
             "name":"RIGHT",
             "relay_pin":24,
             "state_pin":21,
