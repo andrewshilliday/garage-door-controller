@@ -93,7 +93,7 @@ class Controller(object):
         gpio.cleanup()
         gpio.setmode(gpio.BCM)
         self.config = config
-        self.doors = [Door(n, c) for (n, c) in config['doors'].items()]
+        self.doors = [Door(n, c) for (n, c) in sorted(config['doors'].items())]
         self.updateHandler = UpdateHandler(self)
         for door in self.doors:
             door.last_state = 'unknown'
