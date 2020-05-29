@@ -93,7 +93,7 @@ class Controller(object):
         gpio.cleanup()
         gpio.setmode(gpio.BCM)
         self.config = config
-        self.doors = [Door(n, c) for (n, c) in config['doors'].items()]
+        self.doors = [Door(n, c) for (n, c) in sorted(config['doors'].items())]
         self.updateHandler = UpdateHandler(self)
         for door in self.doors:
             door.last_state = 'unknown'
@@ -102,17 +102,25 @@ class Controller(object):
         self.use_alerts = config['config']['use_alerts']
         self.alert_type = config['alerts']['alert_type']
         self.ttw = config['alerts']['time_to_wait']
-        if self.alert_type == 'smtp':
-            self.use_smtp = False
-            smtp_params = ("smtphost", "smtpport", "smtp_tls", "username", "password", "to_email")
-            self.use_smtp = ('smtp' in config['alerts']) and set(smtp_params) <= set(config['alerts']['smtp'])
-            syslog.syslog("we are using SMTP")
-        elif self.alert_type == 'pushbullet':
-            self.pushbullet_access_token = config['alerts']['pushbullet']['access_token']
-            syslog.syslog("we are using Pushbullet")
-        elif self.alert_type == 'pushover':
-            self.pushover_user_key = config['alerts']['pushover']['user_key']
-            syslog.syslog("we are using Pushover")
+        if self.alert_type is not None:
+            if isinstance(self.alert_type, str):
+                self.alert_type = self.alert_type.split(",")
+            for alert in self.alert_type:
+                if alert == 'smtp':
+                    self.use_smtp = False
+                    smtp_params = ("smtphost", "smtpport", "smtp_tls", "username", "password", "to_email")
+                    self.use_smtp = ('smtp' in config['alerts']) and set(smtp_params) <= set(config['alerts']['smtp'])
+                    syslog.syslog("we are using SMTP")
+                elif alert == 'pushbullet':
+                    self.pushbullet_access_token = config['alerts']['pushbullet']['access_token']
+                    syslog.syslog("we are using Pushbullet")
+                elif alert == 'pushover':
+                    self.pushover_user_key = config['alerts']['pushover']['user_key']
+                    syslog.syslog("we are using Pushover")
+                elif alert == 'telegram':
+                    self.telegram_api_token = config['alerts']['telegram']['api_token']
+                    self.telegram_chat_id = config['alerts']['telegram']['chat_id']
+                    syslog.syslog("we are using Telegram")
         else:
             self.alert_type = None
             syslog.syslog("No alerts configured")
@@ -132,12 +140,7 @@ class Controller(object):
                     title = "%s's garage door open" % door.name
                     etime = elapsed_time(int(time.time() - door.open_time))
                     message = "%s's garage door has been open for %s" % (door.name, etime)
-                    if self.alert_type == 'smtp':
-                        self.send_email(title, message)
-                    elif self.alert_type == 'pushbullet':
-                        self.send_pushbullet(door, title, message)
-                    elif self.alert_type == 'pushover':
-                        self.send_pushover(door, title, message)
+                    self.send_msg(door, title, message)
                     door.msg_sent = True
 
             if new_state == 'closed':
@@ -146,28 +149,34 @@ class Controller(object):
                         title = "%s's garage doors closed" % door.name
                         etime = elapsed_time(int(time.time() - door.open_time))
                         message = "%s's garage door is now closed after %s "% (door.name, etime)
-                        if self.alert_type == 'smtp':
-                            self.send_email(title, message)
-                        elif self.alert_type == 'pushbullet':
-                            self.send_pushbullet(door, title, message)
-                        elif self.alert_type == 'pushover':
-                            self.send_pushover(door, title, message)
+                        self.send_msg(door, title, message)
                 door.open_time = time.time()
                 door.msg_sent = False
+
+    def send_msg(self, door, title, message):
+        for alert in self.alert_type:
+            if alert == 'smtp':
+                self.send_email(title, message)
+            elif alert == 'pushbullet':
+                self.send_pushbullet(door, title, message)
+            elif alert == 'pushover':
+                self.send_pushover(door, title, message)
+            elif alert == 'telegram':
+                self.send_telegram(door, title, message)
 
     def send_email(self, title, message):
         try:
             if self.use_smtp:
                 syslog.syslog("Sending email message")
                 config = self.config['alerts']['smtp']
-                
+
                 message = MIMEText(message)
                 message['Date'] = formatdate()
                 message['From'] = config["username"]
                 message['To'] = config["to_email"]
                 message['Subject'] = config["subject"]
                 message['Message-ID'] = make_msgid()
-                
+
                 server = smtplib.SMTP(config["smtphost"], config["smtpport"])
                 if (config["smtp_tls"] == "True") :
                     server.starttls()
@@ -218,6 +227,20 @@ class Controller(object):
         except Exception as inst:
             syslog.syslog("Error sending to pushover: " + str(inst))
 
+    def send_telegram(self, door, title, message):
+        try:
+            syslog.syslog("Sending Telegram message")
+            config = self.config['alerts']['telegram']
+            conn = httplib.HTTPSConnection("api.telegram.org:443")
+            conn.request("POST", "/bot" + config['api_token'] + "/sendMessage",
+                    urllib.urlencode({
+                        "chat_id": config['chat_id'],
+                        "text": message,
+                    }), { "Content-type": "application/x-www-form-urlencoded" })
+            conn.getresponse()
+        except Exception as inst:
+            syslog.syslog("Error sending to telegram: " + str(inst))
+
     def update_openhab(self, item, state):
         try:
             syslog.syslog("Updating openhab")
@@ -256,7 +279,7 @@ class Controller(object):
         root.putChild('upd', self.updateHandler)
         root.putChild('cfg', ConfigHandler(self))
         root.putChild('upt', UptimeHandler(self))
-        
+
         if self.config['config']['use_auth']:
             clk = ClickHandler(self)
             args={self.config['site']['username']:self.config['site']['password']}
@@ -268,9 +291,9 @@ class Controller(object):
             root.putChild('clk', protected_resource)
         else:
             root.putChild('clk', ClickHandler(self))
-        
+
         site = server.Site(root)
-        
+
         if not self.get_config_with_default(self.config['config'], 'use_https', False):
             reactor.listenTCP(self.config['site']['port'], site)  # @UndefinedVariable
             reactor.run()  # @UndefinedVariable
@@ -331,7 +354,7 @@ class UptimeHandler(Resource):
         if (uptime == "up"):
             uptime = "0 mins"
         return json.dumps("Uptime: " + uptime)
-    
+
 class UpdateHandler(Resource):
     isLeaf = True
     def __init__(self, controller):
