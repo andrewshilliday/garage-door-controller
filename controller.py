@@ -121,6 +121,10 @@ class Controller(object):
                     self.telegram_api_token = config['alerts']['telegram']['api_token']
                     self.telegram_chat_id = config['alerts']['telegram']['chat_id']
                     syslog.syslog("we are using Telegram")
+                elif alert == 'ifttt':
+                    self.ifttt_key = config['alerts']['ifttt']['key']
+                    self.ifttt_event = config['alerts']['ifttt']['event']
+                    syslog.syslog("we are using IFTTT")
         else:
             self.alert_type = None
             syslog.syslog("No alerts configured")
@@ -163,6 +167,8 @@ class Controller(object):
                 self.send_pushover(door, title, message)
             elif alert == 'telegram':
                 self.send_telegram(door, title, message)
+            elif alert == 'ifttt':
+                self.send_ifttt(door, title, message)
 
     def send_email(self, title, message):
         try:
@@ -240,6 +246,21 @@ class Controller(object):
             conn.getresponse()
         except Exception as inst:
             syslog.syslog("Error sending to telegram: " + str(inst))
+
+    def send_ifttt(self, door, title, message):
+        try:
+            syslog.syslog("Sending ifttt event")
+            config = self.config['alerts']['ifttt']
+            conn = httplib.HTTPSConnection("maker.ifttt.com:443")
+            conn.request("POST", "/trigger/" config['event'] + "/with/key/"+ config['key'],
+                    urllib.urlencode({
+                        "value1": door,
+                        "value2": title,
+                        "value3": message,
+                    }), { "Content-type": "application/x-www-form-urlencoded" })
+            conn.getresponse()
+        except Exception as inst:
+            syslog.syslog("Error sending to ifttt: " + str(inst))
 
     def update_openhab(self, item, state):
         try:

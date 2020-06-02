@@ -27,6 +27,10 @@
         "telegram":{
             "chat_id":"<CHAT_ID>",
             "api_token":"<API_TOKEN>"
+        },
+        "ifttt":{
+            "key":"<IFTTT MAKER KEY>",
+            "event":"<EVENT CODE SENT TO IFTTT, value1 will be door name, value2 will be message title, value3 will be message>"
         }
     },
     "openhab":{
