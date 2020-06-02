@@ -84,11 +84,11 @@ Software Installation:
     
 4. **Install the controller application**
         
-    I just install it to ~/pi/garage-door-controller.  You can install it anywhere you want but make sure to adapt these instructions accordingly. You can obtain the code via SVN by executing the following:
+    I just install it to ~/pi/garage-door-controller.  You can install it anywhere you want but make sure to adapt these instructions accordingly. You can obtain the code via Git by executing the following:
     
-    `sudo apt-get install subversion`
+    `sudo apt-get install git`
 
-    `svn co https://github.com/andrewshilliday/garage-door-controller/trunk ~pi/garage-door-controller`
+    `svn co https://github.com/andrewshilliday/garage-door-controller.git`
     
     That's it; you don't need to build anything.
     
