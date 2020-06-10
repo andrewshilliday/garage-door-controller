@@ -312,6 +312,9 @@ class Controller(object):
         else:
             root.putChild('clk', ClickHandler(self))
 
+        if self.config['config']['allow_api']:
+            root.putChild('api', APIHandler(self))
+
         site = server.Site(root)
 
         if not self.get_config_with_default(self.config['config'], 'use_https', False):
@@ -333,6 +336,38 @@ class ClickHandler(Resource):
         door = request.args['id'][0]
         self.controller.toggle(door)
         return 'OK'
+
+class APIHandler(Resource):
+    isLeaf = True
+
+    def __init__ (self, controller):
+        Resource.__init__(self)
+        self.controller = controller
+
+    def render(self, request):
+        key = request.args['key'][0]
+        command request.args['command'][0]
+        door = request.args['id'][0]
+        if key == self.config['config']['api_key']:
+            if command == "toggle":
+                self.controller.toggle(door)
+                return 'OK'
+            elif command == "open":
+                state = door.get_state()
+                if state == "closed":
+                    self.controller.toggle(door)
+                return 'OK'
+            elif command == "close":
+                state = door.get_state()
+                if state == "open":
+                    self.controller.toggle(door)
+                return 'OK'
+            else:
+                request.setResponseCode(400)
+                return 'Error: Command not implemented'
+        else:
+            request.setResponseCode(403)
+            return 'Error: API error'
 
 class StatusHandler(Resource):
     isLeaf = True
