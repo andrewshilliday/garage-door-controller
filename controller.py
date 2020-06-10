@@ -138,7 +138,9 @@ class Controller(object):
                 door.last_state_time = time.time()
                 self.updateHandler.handle_updates()
                 if self.config['config']['use_openhab'] and (new_state == "open" or new_state == "closed"):
-                    self.update_openhab(door.openhab_name, new_state)
+                    self.update_openhab(door.name, new_state)
+                if self.config['config']['use_ifttt'] and (new_state == "open" or new_state == "closed"):
+                    self.update_ifttt(door.name, new_state)
             if new_state == 'open' and not door.msg_sent and time.time() - door.open_time >= self.ttw:
                 if self.use_alerts:
                     title = "%s's garage door open" % door.name
@@ -167,8 +169,6 @@ class Controller(object):
                 self.send_pushover(door, title, message)
             elif alert == 'telegram':
                 self.send_telegram(door, title, message)
-            elif alert == 'ifttt':
-                self.send_ifttt(door, title, message)
 
     def send_email(self, title, message):
         try:
@@ -247,20 +247,19 @@ class Controller(object):
         except Exception as inst:
             syslog.syslog("Error sending to telegram: " + str(inst))
 
-    def send_ifttt(self, door, title, message):
+    def update_ifttt(self, door, status):
         try:
             syslog.syslog("Sending ifttt event")
-            config = self.config['alerts']['ifttt']
+            config = self.config['ifttt']
             conn = httplib.HTTPSConnection("maker.ifttt.com:443")
             conn.request("POST", "/trigger/" config['event'] + "/with/key/"+ config['key'],
                     urllib.urlencode({
                         "value1": door,
-                        "value2": title,
-                        "value3": message,
+                        "value2": status,
                     }), { "Content-type": "application/x-www-form-urlencoded" })
             conn.getresponse()
         except Exception as inst:
-            syslog.syslog("Error sending to ifttt: " + str(inst))
+            syslog.syslog("Error updating ifttt: " + str(inst))
 
     def update_openhab(self, item, state):
         try:
