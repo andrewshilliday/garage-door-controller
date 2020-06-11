@@ -255,7 +255,7 @@ class Controller(object):
             syslog.syslog("Sending ifttt event")
             config = self.config['ifttt']
             conn = httplib.HTTPSConnection("maker.ifttt.com:443")
-            conn.request("POST", "/trigger/" config['event'] + "/with/key/"+ config['key'],
+            conn.request("POST", "/trigger/" + config['event'] + "/with/key/" + config['key'],
                     urllib.urlencode({
                         "value1": door,
                         "value2": status,
@@ -349,7 +349,7 @@ class APIHandler(Resource):
 
     def render(self, request):
         key = request.args['key'][0]
-        command request.args['command'][0]
+        command = request.args['command'][0]
         door = request.args['id'][0]
         if key == self.config['config']['api_key']:
             if command == "toggle":
