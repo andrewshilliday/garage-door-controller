@@ -144,8 +144,11 @@ class Controller(object):
             if new_state == 'open' and not door.msg_sent and time.time() - door.open_time >= self.ttw:
                 if self.use_alerts:
                     title = "%s's garage door open" % door.name
-                    etime = elapsed_time(int(time.time() - door.open_time))
-                    message = "%s's garage door has been open for %s" % (door.name, etime)
+                    if self.ttw == 0:
+                        message = "%s's garage door just opened" % (door.name)
+                    else:
+                        etime = elapsed_time(int(time.time() - door.open_time))
+                        message = "%s's garage door has been open for %s" % (door.name, etime)
                     self.send_msg(door, title, message)
                     door.msg_sent = True
 
