@@ -346,28 +346,30 @@ class APIHandler(Resource):
     def __init__ (self, controller):
         Resource.__init__(self)
         self.controller = controller
+        self.doors = [Door(n, c) for (n, c) in sorted(controller.config['doors'].items())]
 
     def render(self, request):
         key = request.args['key'][0]
         command = request.args['command'][0]
-        door = request.args['id'][0]
-        if key == self.config['config']['api_key']:
-            if command == "toggle":
-                self.controller.toggle(door)
-                return 'OK'
-            elif command == "open":
-                state = door.get_state()
-                if state == "closed":
-                    self.controller.toggle(door)
-                return 'OK'
-            elif command == "close":
-                state = door.get_state()
-                if state == "open":
-                    self.controller.toggle(door)
-                return 'OK'
-            else:
-                request.setResponseCode(400)
-                return 'Error: Command not implemented'
+        doorId = request.args['id'][0]
+        if key == self.controller.config['config']['api_key']:
+            for d in self.doors:
+                if d.id == doorId:
+                    state = d.get_state()
+                    if command == "toggle":
+                        self.controller.toggle(doorId)
+                        return 'OK'
+                    elif command == "open":
+                        if state == "closed":
+                            self.controller.toggle(doorId)
+                        return 'OK'
+                    elif command == "close":
+                        if state == "open":
+                            self.controller.toggle(doorId)
+                        return 'OK'
+                    else:
+                        request.setResponseCode(400)
+                        return 'Error: Command not implemented'
         else:
             request.setResponseCode(403)
             return 'Error: API error'
