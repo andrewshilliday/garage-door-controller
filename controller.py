@@ -312,8 +312,17 @@ class Controller(object):
             credentialFactory = BasicCredentialFactory("Garage Door Controller")
             protected_resource = HTTPAuthSessionWrapper(p, [credentialFactory])
             root.putChild('clk', protected_resource)
+            cla = CloseHandler(self)
+            cla_args={self.config['site']['username']:self.config['site']['password']}
+            cla_checker = checkers.InMemoryUsernamePasswordDatabaseDontUse(**cla_args)
+            cla_realm = HttpPasswordRealm(cla)
+            cla_p = portal.Portal(cla_realm, [cla_checker])
+            credentialFactory = BasicCredentialFactory("Garage Door Controller")
+            cla_protected_resource = HTTPAuthSessionWrapper(cla_p, [credentialFactory])
+            root.putChild('cla', cla_protected_resource)
         else:
             root.putChild('clk', ClickHandler(self))
+            root.putChild('cla', CloseHandler(self))
 
         if self.config['config']['allow_api']:
             root.putChild('api', APIHandler(self))
@@ -338,6 +347,20 @@ class ClickHandler(Resource):
     def render(self, request):
         door = request.args['id'][0]
         self.controller.toggle(door)
+        return 'OK'
+
+class CloseHandler(Resource):
+    isLeaf = True
+
+    def __init__ (self, controller):
+        Resource.__init__(self)
+        self.controller = controller
+        self.doors = [Door(n, c) for (n, c) in sorted(controller.config['doors'].items())]
+
+    def render(self, request):
+        for d in self.doors:
+            if d.get_state() == "open":
+                self.controller.toggle(d.id)
         return 'OK'
 
 class APIHandler(Resource):

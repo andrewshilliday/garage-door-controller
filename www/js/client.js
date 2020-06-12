@@ -1,16 +1,23 @@
 var lastupdate = 0;
 
 function formatState(state, time)
-{   
+{
     dateStr = dateFormat(new Date(parseInt(time)*1000), "mmm dS, yyyy, h:MM TT");
     return state.charAt(0).toUpperCase() + state.slice(1) + " as of " + dateStr;
 };
 
-function click(name) 
+function click(name)
 {
     $.ajax({
 	url:"clk",
 	data:{'id':name}
+    })
+};
+
+function closeall(name)
+{
+    $.ajax({
+	url:"cla",
     })
 };
 
@@ -45,13 +52,13 @@ function uptime() {
  	    setTimeout('uptime()', 60000)
  	},
  	dataType: "json",
- 	timeout: 60000	
+ 	timeout: 60000
      });
 }
 
 
 function poll(){
-    $.ajax({ 
+    $.ajax({
     	url: "upd",
     	data: {'lastupdate': lastupdate },
     	success: function(response, status) {
@@ -72,9 +79,9 @@ function poll(){
             setTimeout('poll();', 10000);
         },
     	//complete: poll,
-    	dataType: "json", 
+    	dataType: "json",
     	timeout: 30000
-    });    
+    });
 };
 
 function init() {
