@@ -54,7 +54,7 @@ The contact switches are the sensors that the raspberry pi will use to recognize
 The relays are used to mimic a push button being pressed which will in turn cause your garage doors to open and shut.  Each relay channel is wired to the garage door opener identically to and in parallel with the existing push button wiring.  You'll want to consult your model's manual, or experiment with paper clips, but it should be wired somewhere around here:
 
 ![!\[Wiring the garage door opener\]][4]
-    
+
 *Step 3: Wiring it all together*
 
 The following diagram illustrates how to wire up a two-door controller.  The program can accommodate fewer or additional garage doors (available GPIO pins permitting).
@@ -72,7 +72,7 @@ Software Installation:
     3.  [And a video](http://www.youtube.com/watch?v=aTQjuDfEGWc)!
 
 2. **Configure your WiFi adapter** (if necessary).
-    
+
     - [Follow this tutorial](http://www.frodebang.com/post/how-to-install-the-edimax-ew-7811un-wifi-adapter-on-the-raspberry-pi)
     - [or this one](http://www.youtube.com/watch?v=oGbDawnqbP4)
 
@@ -81,33 +81,33 @@ Software Installation:
 3. **Install the python twisted module** (used to stand up the web server):
 
     `sudo apt-get install python-twisted`
-    
+
 4. **Install the controller application**
-        
+
     I just install it to ~/pi/garage-door-controller.  You can install it anywhere you want but make sure to adapt these instructions accordingly. You can obtain the code via Git by executing the following:
-    
+
     `sudo apt-get install git`
 
     `svn co https://github.com/andrewshilliday/garage-door-controller.git`
-    
+
     That's it; you don't need to build anything.
-    
+
 5.  **Create SSL Certificates** (if desired).
-    
+
     If you plan on using SSL by setting the **use_https** option to *true* in the `config.json` file, you will need to complete this step or provide your own private keys and certificate for secure communication.
-    
+
     In order for secure communication to be allowed, the controller application needs SSL certificates.  To quickly generate SSL certificates, do the following:
-    
+
     `mkdir -p /home/pi/garage-door-controller-cert`
-    
+
     `openssl req -new -x509 -days 3650 -nodes -out /home/pi/garage-door-controller-cert/localhost.crt -newkey rsa:4096 -sha256 -keyout /home/pi/garage-door-controller-cert/localhost.key -subj "/CN=localhost"`
-    
+
     `chmod 700 /home/pi/garage-door-controller-cert`
-    
+
     `chmod 600 /home/pi/garage-door-controller-cert/*`
-    
+
 6.  **Edit `config.json`**
-    
+
     You'll need one configuration entry for each garage door.  The settings are fairly obvious, but are defined as follows:
     - **name**: The name for the garage door as it will appear on the controller app.
     - **relay_pin**: The GPIO pin connecting the RPi to the relay for that door.
@@ -117,29 +117,29 @@ Software Installation:
     - **approx_time_to_open**: How long the garage door typically takes to open.
 
     The **approx_time_to_XXX** options are not particularly crucial.  They tell the program when to shift from the opening or closing state to the "open" or "closed" state.  You don't need to be out there with a stopwatch and you wont break anything if they are off.  In the worst case, you may end up with a slightly odd behavior when closing the garage door whereby it goes from "closing" to "open" (briefly) and then to "closed" when the sensor detects that the door is actually closed.
-    
+
 7.  **Set to launch at startup**
-    
+
     For Raspbian, a service script has been created. You can install it using the following:
-    
+
     `sudo cp /home/pi/garage-door-controller/extra/garagecontrollerd.service /lib/systemd/system`
-    
+
     `sudo chmod 644 /lib/systemd/system/garagecontrollerd.service`
-    
+
     `sudo systemctl daemon-reload`
-    
+
     `sudo systemctl enable garagecontrollerd.service`
-    
+
     `sudo systemctl start garagecontrollerd.service`
-    
+
     For other distributions; simply add the following line to your /etc/rc.local file, just above the call to `exit 0`:
-    
+
     `(cd ~pi/garage-door-controller; python controller.py)&`
-    
+
 8. **Using the Controller Web Service**
 
     The garage door controller application runs directly from the Raspberry Pi as a web service running on port **8081**, or port **8444** when HTTPS is enabled.  It can be used by directing a web browser (on a PC or mobile device) to **http://[hostname-or-ip-address]:8081/**, or **https://[hostname-or-ip-address]:8444/** when HTTPS is enabled.  If you want to connect to the raspberry pi from outside your home network, you will need to establish port forwarding in your cable modem.  
-    
+
     When the app is open in your web browser, it should display one entry for each garage door configured in your `config.json` file, along with the current status and timestamp from the time the status was last changed.  Click on any entry to open or close the door (each click will behave as if you pressed the garage button once).
 
 TODO:
@@ -149,7 +149,7 @@ This section contains the features I would like to add to the application, but d
 * *Security*: Impose a configurable password on the web service.  Would need to discuss the best strategy (i.e., should we require the pw every time, or can the session persist on any given device which has authenticated).
 * *New Feature*: Add a "close all" button to the bottom of the page to close all doors that have a state other than "closed" or "closing"
 * *Occupancy sensors*: Add proximity sensors to check if car port is in use
-* *IFTTT Integration*: make a smooth secure way to call the door and get information online
+* ~~*IFTTT Integration*: make a smooth secure way to call the door and get information online~~ (Mostly implemented with [2b49a8b817bc157c3f4fc5a7a7cff80b03310e5d])
 
 
   [1]: http://i.imgur.com/rDx9YIt.png
@@ -157,4 +157,3 @@ This section contains the features I would like to add to the application, but d
   [3]: http://i.imgur.com/vPHx7kF.png
   [4]: http://i.imgur.com/AkNl6FI.jpg
   [5]: http://i.imgur.com/48bpyG0.png
-  
