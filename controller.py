@@ -354,7 +354,7 @@ class APIHandler(Resource):
         doorId = request.args['id'][0]
         if key == self.controller.config['config']['api_key']:
             for d in self.doors:
-                if d.id == doorId:
+                if d.id == doorId or d.id == "all_doors":
                     state = d.get_state()
                     if command == "toggle":
                         self.controller.toggle(doorId)
