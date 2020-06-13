@@ -1,0 +1,18 @@
+{
+  "short_name": "Garage",
+  "name": "Garage Controller",
+  "icons": [
+    {
+      "src": "/img/closed.png",
+      "type": "image/png",
+      "sizes": "72x72"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "scope": "/",
+  "theme_color": "#ffffff",
+  "shortcuts": [
+  ]
+}
