@@ -18,6 +18,7 @@ function closeall(name)
 {
     $.ajax({
 	url:"cla",
+  data:{'all':'doors'}
     })
 };
 
