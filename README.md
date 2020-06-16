@@ -88,7 +88,7 @@ Software Installation:
     
     `sudo apt-get install git`
 
-    `svn co https://github.com/andrewshilliday/garage-door-controller.git`
+    `git clone https://github.com/andrewshilliday/garage-door-controller.git`
     
     That's it; you don't need to build anything.
     
