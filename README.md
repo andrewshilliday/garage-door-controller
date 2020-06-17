@@ -142,6 +142,22 @@ Software Installation:
 
     When the app is open in your web browser, it should display one entry for each garage door configured in your `config.json` file, along with the current status and timestamp from the time the status was last changed.  Click on any entry to open or close the door (each click will behave as if you pressed the garage button once).
 
+Using IFTTT and Basic API:
+------------
+IFTTT has been implemented using a combination of sending 'alerts' to the maker channel on IFTTT and using the webhooks channel to send commands to the controller.
+
+Set key under IFTTT to your maker key found under the maker channel.
+Set ifttt_event_open and ifttt_event_close to the event code you want to trigger for each door.
+
+API can be used via IFTTT webhooks (or anything else that can make get requests) to send a command to the controller (eg `http://public ip or dns/api?key=<key you set>&command=<open, close, or toggle>&id=<door id or all_doors>`)
+Key is a string you set in the config.json, I recommend using something like https://www.allkeysgenerator.com/Random/Security-Encryption-Key-Generator.aspx to generate a random 256bit or higher key.
+
+Close All
+------------
+Close all button will close all doors in the open state, all other states are ignored.
+![Screenshot_20200612-162450](https://user-images.githubusercontent.com/5156472/84547697-ad0dfb00-acc9-11ea-8175-d8ec2e5f38ba.png)
+
+
 TODO:
 ----------  
 This section contains the features I would like to add to the application, but do not currently have time for.  If someone would like to contribute changes or patches, I would be all to happy to incorporate them.

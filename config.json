@@ -37,8 +37,7 @@
         "port":""
     },
     "ifttt":{
-        "key":"<IFTTT MAKER KEY>",
-        "event":"<EVENT CODE SENT TO IFTTT, value1 will be door name, value2 will be 'open' or 'closed''>"
+        "key":"<IFTTT MAKER KEY>"
     },
     "site":{
         "port":8081,
@@ -57,6 +56,8 @@
             "approx_time_to_close":15,
             "approx_time_to_open":15,
             "openhab_name":"g_door_left"
+            "ifttt_event_open":"g_door_left_open"
+            "ifttt_event_close":"g_door_left_close"
         },
         "right":{
             "name":"RIGHT",
@@ -66,6 +67,8 @@
             "approx_time_to_close":15,
             "approx_time_to_open":15,
             "openhab_name":"g_door_right"
+            "ifttt_event_open":"g_door_right_open"
+            "ifttt_event_close":"g_door_right_close"
         }
     }
 }

@@ -140,7 +140,7 @@ class Controller(object):
                 if self.config['config']['use_openhab'] and (new_state == "open" or new_state == "closed"):
                     self.update_openhab(door.name, new_state)
                 if self.config['config']['use_ifttt'] and (new_state == "open" or new_state == "closed"):
-                    self.update_ifttt(door.name, new_state)
+                    self.update_ifttt(door.name, new_state, door.ifttt_event_open, door.ifttt_event_close)
             if new_state == 'open' and not door.msg_sent and time.time() - door.open_time >= self.ttw:
                 if self.use_alerts:
                     title = "%s's garage door open" % door.name
@@ -250,16 +250,23 @@ class Controller(object):
         except Exception as inst:
             syslog.syslog("Error sending to telegram: " + str(inst))
 
-    def update_ifttt(self, door, status):
+    def update_ifttt(self, door, status, open_event, close_event):
         try:
             syslog.syslog("Sending ifttt event")
             config = self.config['ifttt']
             conn = httplib.HTTPSConnection("maker.ifttt.com:443")
-            conn.request("POST", "/trigger/" + config['event'] + "/with/key/" + config['key'],
-                    urllib.urlencode({
-                        "value1": door,
-                        "value2": status,
-                    }), { "Content-type": "application/x-www-form-urlencoded" })
+            if status == "open":
+                conn.request("POST", "/trigger/" + open_event + "/with/key/" + config['key'],
+                        urllib.urlencode({
+                            "value1": door,
+                            "value2": status,
+                        }), { "Content-type": "application/x-www-form-urlencoded" })
+            else:
+                conn.request("POST", "/trigger/" + close_event + "/with/key/" + config['key'],
+                        urllib.urlencode({
+                            "value1": door,
+                            "value2": status,
+                        }), { "Content-type": "application/x-www-form-urlencoded" })
             conn.getresponse()
         except Exception as inst:
             syslog.syslog("Error updating ifttt: " + str(inst))
