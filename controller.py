@@ -121,6 +121,10 @@ class Controller(object):
                     self.telegram_api_token = config['alerts']['telegram']['api_token']
                     self.telegram_chat_id = config['alerts']['telegram']['chat_id']
                     syslog.syslog("we are using Telegram")
+                elif alert == 'ifttt':
+                    self.ifttt_key = config['alerts']['ifttt']['key']
+                    self.ifttt_event = config['alerts']['ifttt']['event']
+                    syslog.syslog("we are using IFTTT")
         else:
             self.alert_type = None
             syslog.syslog("No alerts configured")
@@ -134,12 +138,17 @@ class Controller(object):
                 door.last_state_time = time.time()
                 self.updateHandler.handle_updates()
                 if self.config['config']['use_openhab'] and (new_state == "open" or new_state == "closed"):
-                    self.update_openhab(door.openhab_name, new_state)
+                    self.update_openhab(door.name, new_state)
+                if self.config['config']['use_ifttt'] and (new_state == "open" or new_state == "closed"):
+                    self.update_ifttt(door.name, new_state, door.ifttt_event_open, door.ifttt_event_close)
             if new_state == 'open' and not door.msg_sent and time.time() - door.open_time >= self.ttw:
                 if self.use_alerts:
                     title = "%s's garage door open" % door.name
-                    etime = elapsed_time(int(time.time() - door.open_time))
-                    message = "%s's garage door has been open for %s" % (door.name, etime)
+                    if self.ttw == 0:
+                        message = "%s's garage door just opened" % (door.name)
+                    else:
+                        etime = elapsed_time(int(time.time() - door.open_time))
+                        message = "%s's garage door has been open for %s" % (door.name, etime)
                     self.send_msg(door, title, message)
                     door.msg_sent = True
 
@@ -241,6 +250,27 @@ class Controller(object):
         except Exception as inst:
             syslog.syslog("Error sending to telegram: " + str(inst))
 
+    def update_ifttt(self, door, status, open_event, close_event):
+        try:
+            syslog.syslog("Sending ifttt event")
+            config = self.config['ifttt']
+            conn = httplib.HTTPSConnection("maker.ifttt.com:443")
+            if status == "open":
+                conn.request("POST", "/trigger/" + open_event + "/with/key/" + config['key'],
+                        urllib.urlencode({
+                            "value1": door,
+                            "value2": status,
+                        }), { "Content-type": "application/x-www-form-urlencoded" })
+            else:
+                conn.request("POST", "/trigger/" + close_event + "/with/key/" + config['key'],
+                        urllib.urlencode({
+                            "value1": door,
+                            "value2": status,
+                        }), { "Content-type": "application/x-www-form-urlencoded" })
+            conn.getresponse()
+        except Exception as inst:
+            syslog.syslog("Error updating ifttt: " + str(inst))
+
     def update_openhab(self, item, state):
         try:
             syslog.syslog("Updating openhab")
@@ -289,8 +319,20 @@ class Controller(object):
             credentialFactory = BasicCredentialFactory("Garage Door Controller")
             protected_resource = HTTPAuthSessionWrapper(p, [credentialFactory])
             root.putChild('clk', protected_resource)
+            cla = CloseHandler(self)
+            cla_args={self.config['site']['username']:self.config['site']['password']}
+            cla_checker = checkers.InMemoryUsernamePasswordDatabaseDontUse(**cla_args)
+            cla_realm = HttpPasswordRealm(cla)
+            cla_p = portal.Portal(cla_realm, [cla_checker])
+            credentialFactory = BasicCredentialFactory("Garage Door Controller")
+            cla_protected_resource = HTTPAuthSessionWrapper(cla_p, [credentialFactory])
+            root.putChild('cla', cla_protected_resource)
         else:
             root.putChild('clk', ClickHandler(self))
+            root.putChild('cla', CloseHandler(self))
+
+        if self.config['config']['allow_api']:
+            root.putChild('api', APIHandler(self))
 
         site = server.Site(root)
 
@@ -313,6 +355,54 @@ class ClickHandler(Resource):
         door = request.args['id'][0]
         self.controller.toggle(door)
         return 'OK'
+
+class CloseHandler(Resource):
+    isLeaf = True
+
+    def __init__ (self, controller):
+        Resource.__init__(self)
+        self.controller = controller
+        self.doors = [Door(n, c) for (n, c) in sorted(controller.config['doors'].items())]
+
+    def render(self, request):
+        for d in self.doors:
+            if d.get_state() == "open":
+                self.controller.toggle(d.id)
+        return 'OK'
+
+class APIHandler(Resource):
+    isLeaf = True
+
+    def __init__ (self, controller):
+        Resource.__init__(self)
+        self.controller = controller
+        self.doors = [Door(n, c) for (n, c) in sorted(controller.config['doors'].items())]
+
+    def render(self, request):
+        key = request.args['key'][0]
+        command = request.args['command'][0]
+        doorId = request.args['id'][0]
+        if key == self.controller.config['config']['api_key']:
+            for d in self.doors:
+                if d.id == doorId or d.id == "all_doors":
+                    state = d.get_state()
+                    if command == "toggle":
+                        self.controller.toggle(doorId)
+                        return 'OK'
+                    elif command == "open":
+                        if state == "closed":
+                            self.controller.toggle(doorId)
+                        return 'OK'
+                    elif command == "close":
+                        if state == "open":
+                            self.controller.toggle(doorId)
+                        return 'OK'
+                    else:
+                        request.setResponseCode(400)
+                        return 'Error: Command not implemented'
+        else:
+            request.setResponseCode(403)
+            return 'Error: API error'
 
 class StatusHandler(Resource):
     isLeaf = True

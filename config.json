@@ -3,7 +3,10 @@
         "use_https":false,
         "use_auth":true,
         "use_alerts":true,
-        "use_openhab":false
+        "use_openhab":false,
+        "use_ifttt":false,
+        "allow_api":false,
+        "api_key":"<static key here>"
     },
     "alerts":{
         "time_to_wait":10,
@@ -33,6 +36,9 @@
         "server":"",
         "port":""
     },
+    "ifttt":{
+        "key":"<IFTTT MAKER KEY>"
+    },
     "site":{
         "port":8081,
         "port_secure":8444,
@@ -49,7 +55,9 @@
             "state_pin_closed_value":0,
             "approx_time_to_close":15,
             "approx_time_to_open":15,
-            "openhab_name":"g_door_left"
+            "openhab_name":"g_door_left",
+            "ifttt_event_open":"g_door_left_open",
+            "ifttt_event_close":"g_door_left_close"
         },
         "right":{
             "name":"RIGHT",
@@ -58,7 +66,9 @@
             "state_pin_closed_value":0,
             "approx_time_to_close":15,
             "approx_time_to_open":15,
-            "openhab_name":"g_door_right"
+            "openhab_name":"g_door_right",
+            "ifttt_event_open":"g_door_right_open",
+            "ifttt_event_close":"g_door_right_close"
         }
     }
 }
